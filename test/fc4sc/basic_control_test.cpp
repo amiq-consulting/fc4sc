@@ -1,32 +1,22 @@
-#include "../../includes/fc4sc.hpp"
+#include "fc4sc.hpp"
 #include "gtest/gtest.h"
 
 class cvg_control_test : public covergroup {
 public:
 
-  CG_CONS(cvg_control_test) {
+  CG_CONS(cvg_control_test) {};
 
-  };
-
-  int SAMPLE_POINT(sample_point1,cvp1);
-  int SAMPLE_POINT(sample_point2,cvp2);
+  int SAMPLE_POINT(sample_point1, cvp1);
+  int SAMPLE_POINT(sample_point2, cvp2);
 
   void sample(const int& x) {
     this->sample_point1 = x;
     this->sample_point2 = x;
-
     covergroup::sample();
-
   }
 
-  coverpoint<int> cvp1 = coverpoint<int> (this,
-    bin<int>(1)
-  );
-
-  coverpoint<int> cvp2 = coverpoint<int> (this,
-    bin<int>(1)
-    );  
-
+  coverpoint<int> cvp1 = coverpoint<int> (this, bin<int>(1));
+  coverpoint<int> cvp2 = coverpoint<int> (this, bin<int>(1));
 };
 
 

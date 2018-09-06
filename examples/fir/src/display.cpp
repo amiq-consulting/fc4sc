@@ -55,7 +55,7 @@ void display::entry(){
     cout << "Simulation of " << i << " items finished"
 	 << " at time " << sc_time_stamp().to_double() << endl;
 
-    fc4sc::global_access::coverage_save("coverage_results.xml");
+    fc4sc::global::coverage_save("coverage_results.xml");
       
     sc_stop();
   };

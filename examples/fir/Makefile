@@ -3,7 +3,10 @@ LD = g++
 
 EXEC = fir
 
-INCLUDES = -I./../../includes -I${SYSTEMC_HOME}/include
+INCLUDE_SYSTEMC = -I${SYSTEMC_HOME}/include
+INCLUDE_FC4SC = -I./../../includes
+
+INCLUDES = $(INCLUDE_SYSTEMC) $(INCLUDE_FC4SC) 
 CFLAGS = -c -std=c++11
 DEFINES = -DFC4SC_NO_THROW
 LDFLAGS = -L${SYSTEMC_HOME}/lib-linux64 -lsystemc 

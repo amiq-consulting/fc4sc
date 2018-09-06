@@ -22,7 +22,6 @@ using std::to_string;
 using std::cerr;
 using std::cout;
 
-using std::make_pair;
 using std::pair;
 using std::string;
 
@@ -102,7 +101,7 @@ public:
   bin(T value, Args... args) : bin(args...)
   {
 
-    intervals.push_back(make_pair(value, value));
+    intervals.push_back(interval(value, value));
   }
 
   /*!
@@ -137,6 +136,9 @@ public:
    *  \brief Default constructor
    */
   bin() {}
+
+  /*! Destructor */
+  virtual ~bin(){};
 
   uint64_t get_hitcount() const
   {
@@ -235,6 +237,8 @@ public:
   template <typename... Args>
   explicit illegal_bin(Args... args) : bin<T>::bin(args...){};
 
+  virtual ~illegal_bin(){};
+
   /*!
    * \brief Same as bin::sample(const T& val)
    *
@@ -291,6 +295,8 @@ public:
    */
   template <typename... Args>
   explicit ignore_bin(Args... args) : bin<T>::bin(args...){};
+
+  virtual ~ignore_bin(){};
 };
 
 
@@ -314,6 +320,8 @@ public:
 
     split_hits.resize(this->count);
   }
+
+  virtual ~bin_array() {}
 
   uint64_t size() {
     return this->count;

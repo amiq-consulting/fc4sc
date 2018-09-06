@@ -1,5 +1,5 @@
 #include "../../includes/fc4sc.hpp"
-#include "gtest/gtest.h"
+#include "../googletest/googletest/include/gtest/gtest.h"
 
 class basic_test_1 : covergroup {
 public:

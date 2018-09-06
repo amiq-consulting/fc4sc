@@ -3,7 +3,6 @@
 #include "fc4sc_bin.hpp"
 
 using std::max;
-using std::make_pair;
 using std::min;
 
 namespace fc4sc {
@@ -52,7 +51,7 @@ namespace fc4sc {
           continue;
 
 
-        auto new_intv = make_pair( max(it_lhs.first, it_rhs.first), min(it_rhs.second, it_lhs.second)   ) ;
+        auto new_intv = interval( max(it_lhs.first, it_rhs.first), min(it_rhs.second, it_lhs.second)   ) ;
  
         if (new_intv.first > new_intv.second)
           std::swap(new_intv.first, new_intv.second);

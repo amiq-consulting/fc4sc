@@ -36,8 +36,8 @@ class test_coverage : public covergroup {
 
     coverpoint<int> values_cvp = coverpoint<int> (this,
         bin<int>("zero", 0),
-        bin<int>("low1", make_pair(1,5)),
-        bin_array<int>("middle_1", 3, make_pair(6,100)),
+        bin<int>("low1", interval(1,5)),
+        bin_array<int>("middle_1", 3, interval(6,100)),
         bin<int>("max", 255)
     );
 

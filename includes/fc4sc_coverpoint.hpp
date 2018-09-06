@@ -38,7 +38,7 @@ class coverpoint : public cvp_base
 {
   static_assert(std::is_arithmetic<T>::value, "Type must be numeric!");
 
-  T* sample_point;
+  T* sample_point = nullptr;
 
   /*! Default bins declared in this coverpoint */
   vector<bin_array<T>> bin_arrays;
@@ -46,7 +46,7 @@ class coverpoint : public cvp_base
   /*! Illegal bins declared in this coverpoint */
   vector<illegal_bin<T>> illegal_bins;
 
-  /*! Illegal bins declared in this coverpoint */
+  /*! Ignore bins declared in this coverpoint */
   vector<ignore_bin<T>> ignore_bins;
 
   /*! Sampling switch */
@@ -83,7 +83,7 @@ class coverpoint : public cvp_base
       {
         il_bin_hit.sample(cvp_val);
       }
-      catch (string e)
+      catch (const string &e)
       {
         // Illegal bin hit -> show error
         cerr << "Illegal sample in [" << p_name << "/" << name << "/" << il_bin_hit.name << "] on value [" << cvp_val << "]!\n";

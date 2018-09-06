@@ -71,7 +71,7 @@ SC_MODULE(stimulus) {
 
     coverpoint<int> values_cvp = coverpoint<int> (this, 
         bin<int>("zero", 0),
-        bin_array<int>("lows", 3, make_pair(1,5)),
+        bin_array<int>("lows", 3, interval(1,5)),
         bin<int>("max", 255)
     );
 

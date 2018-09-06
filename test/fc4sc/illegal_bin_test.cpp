@@ -1,4 +1,4 @@
-#include "../../includes/fc4sc.hpp"
+#include "fc4sc.hpp"
 #include "gtest/gtest.h"
 
 class cvg_illegal_test : public covergroup {

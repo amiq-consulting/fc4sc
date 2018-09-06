@@ -1,19 +1,19 @@
-#include "../../includes/fc4sc.hpp"
+#include "fc4sc.hpp"
 #include "gtest/gtest.h"
 
 TEST(intervals, reunion) {
 
-  bin<int> a("1", make_pair(1,5), make_pair(7,7), make_pair(8,20) );
-  bin<int> b("2", make_pair(2,3), make_pair(5,9) );
-  bin<int> c("3", make_pair(1,3), make_pair(3,6), make_pair(6,9) );
-  bin<int> d("4", make_pair(2,4), make_pair(4,6) , make_pair(6,8), make_pair(10,19) );
+  bin<int> a("1", interval(1,5), interval(7,7), interval(8,20) );
+  bin<int> b("2", interval(2,3), interval(5,9) );
+  bin<int> c("3", interval(1,3), interval(3,6), interval(6,9) );
+  bin<int> d("4", interval(2,4), interval(4,6) , interval(6,8), interval(10,19) );
 
-  vector<pair<int,int>> a_ = {make_pair(1,5), make_pair(7,7), make_pair(8,20) };
-  vector<pair<int,int>> b_ = {make_pair(2,3), make_pair(5,9) };
-  vector<pair<int,int>> c_ = {make_pair(1,9)};
-  vector<pair<int,int>> d_ = {make_pair(2,8), make_pair(10,19)};
+  vector<pair<int,int>> a_ = {interval(1,5), interval(7,7), interval(8,20) };
+  vector<pair<int,int>> b_ = {interval(2,3), interval(5,9) };
+  vector<pair<int,int>> c_ = {interval(1,9)};
+  vector<pair<int,int>> d_ = {interval(2,8), interval(10,19)};
 
-  vector<pair<int,int>> a_b = {make_pair(1,20)};
+  vector<pair<int,int>> a_b = {interval(1,20)};
 
   auto a_self = reunion(a,a);
   auto b_self = reunion(b,b);

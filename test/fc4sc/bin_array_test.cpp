@@ -1,5 +1,5 @@
 #include "../../includes/fc4sc.hpp"
-#include "gtest/gtest.h"
+#include "../googletest/googletest/include/gtest/gtest.h"
 
 class bin_array_test : public covergroup {
 public:

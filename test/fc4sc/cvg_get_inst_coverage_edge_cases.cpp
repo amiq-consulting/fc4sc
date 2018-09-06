@@ -1,4 +1,4 @@
-#include "../../includes/fc4sc.hpp"
+#include "fc4sc.hpp"
 #include "gtest/gtest.h"
 
 class cvg_0_weight_test : public covergroup {

@@ -68,7 +68,7 @@ SC_MODULE(display) {
           bin<int>("zero", 0),
           illegal_bin<int>("illegal_zero", 0),
           bin<int>("positive", interval(1,INT_MAX - 1)),
-          bin<int>("negative", make_pair(-1,INT_MIN + 1))
+          bin<int>("negative", interval(-1,INT_MIN + 1))
       );
 
       coverpoint<int> output_valid_cvp = coverpoint<int> (this,

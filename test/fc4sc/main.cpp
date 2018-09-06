@@ -1,7 +1,6 @@
 #include <iostream>
-#include <gtest/gtest.h>
-
-#include "../../includes/fc4sc.hpp"
+#include "fc4sc.hpp"
+#include "gtest/gtest.h"
 
 int main(int ac, char* av[])
 {

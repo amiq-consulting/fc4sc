@@ -19,8 +19,6 @@
 #include "fc4sc_options.hpp"
 
 using std::tuple;
-
-using std::make_pair;
 using std::ostream;
 using std::pair;
 using std::string;
@@ -40,9 +38,9 @@ using std::vector;
  * \brief Macro to declare a sampling point variable and register some names
  *
  */
-#define SAMPLE_POINT(variable_name, cvp)                                        \
-  variable_name;                                                                \
-  bool init_##cvp = this->set_strings(&cvp, &variable_name, #cvp, #variable_name);              \
+#define SAMPLE_POINT(variable_name, cvp)                                           \
+  variable_name = static_cast<decltype(variable_name)>(0);                         \
+  bool init_##cvp = this->set_strings(&cvp, &variable_name, #cvp, #variable_name); \
 
 /*!
  *  \namespace fc4sc
@@ -70,7 +68,7 @@ namespace fc4sc
 template <typename T>
 static pair<T, T> interval(T t1, T t2)
 {
-  return make_pair(t1, t2);
+  return std::make_pair(t1, t2);
 }
 
 /*!
@@ -153,6 +151,8 @@ public:
 
   virtual void sample() = 0;
 
+  /*! Destructor */
+  virtual ~api_base(){};
 };
 
 /*!

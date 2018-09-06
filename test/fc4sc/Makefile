@@ -1,10 +1,11 @@
 SRC_DIR := .
 OBJ_DIR := ./obj
 GOOGLE_TEST_HOME := ./../googletest/
+INCLUDE_FC4SC := -I./../../includes
 SRC_FILES := $(wildcard $(SRC_DIR)/*.cpp)
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_FILES))
 LDFLAGS := -lpthread -L $(GOOGLE_TEST_HOME)/build/googlemock/gtest -lgtest
-CPPFLAGS := -I $(GOOGLE_TEST_HOME)/googletest/include
+CPPFLAGS := -I $(GOOGLE_TEST_HOME)/googletest/include $(INCLUDE_FC4SC)
 CXXFLAGS := -std=c++11 -Wall
 CC := g++
 EXEC := main.exe
