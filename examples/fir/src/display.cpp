@@ -30,6 +30,20 @@
   MODIFICATION LOG - modifiers, enter your name, affiliation, date and
   changes you are making here.
  
+      Name, Affiliation: Teodor Vasilache and Dragos Dospinescu,
+                         AMIQ Consulting s.r.l. (contributors@amiq.com)
+                   Date: 2018-Feb-20
+
+  Description of Modification: Included the FC4SC library in order to collect
+  functional coverage data and generate a coverage database.
+            
+ *****************************************************************************/
+
+/*****************************************************************************
+ 
+  MODIFICATION LOG - modifiers, enter your name, affiliation, date and
+  changes you are making here.
+ 
       Name, Affiliation, Date:
   Description of Modification:
  
@@ -44,19 +58,19 @@ void display::entry(){
 
   //  Reading Data when valid if high
   tmp1 = result.read();
-  cout << "Display : " << tmp1 << " "
-      << "at time " << sc_time_stamp().to_double() << endl;
+  cout << "Display : " << tmp1 << " " 
+       /* << " at time " << sc_time_stamp() << endl; */
+       << " at time " << sc_time_stamp().to_double() << endl;
   i++;
-
+  // sample the data
   this->out_cg.sample(result, output_data_ready);
-
-
   if(i == 24) {
-    cout << "Simulation of " << i << " items finished"
+    cout << "Simulation of " << i << " items finished" 
+	 /* << " at time " << sc_time_stamp() << endl; */
 	 << " at time " << sc_time_stamp().to_double() << endl;
-
-    fc4sc::global::coverage_save("coverage_results.xml");
-      
+    
+    // generate the coverage database from the collected data
+    fc4sc::global::coverage_save("coverage_results.xml");    
     sc_stop();
   };
 }

@@ -25,6 +25,20 @@
  
  *****************************************************************************/
  
+ /*****************************************************************************
+
+  MODIFICATION LOG - modifiers, enter your name, affiliation, date and
+  changes you are making here.
+ 
+      Name, Affiliation: Teodor Vasilache and Dragos Dospinescu,
+                         AMIQ Consulting s.r.l. (contributors@amiq.com)
+                   Date: 2018-Feb-20
+
+  Description of Modification: Added sampling of the covergroups created in the 
+  "stimulus.h" file.
+            
+ *****************************************************************************/
+
 /*****************************************************************************
  
   MODIFICATION LOG - modifiers, enter your name, affiliation, date and
@@ -37,8 +51,6 @@
 
 #include <systemc.h>
 #include "stimulus.h"
-
-#include "fc4sc.hpp"
 
 void stimulus::entry() {
 
@@ -58,6 +70,7 @@ void stimulus::entry() {
       input_valid.write(true);
       sample.write( (int)send_value1 );
       cout << "Stimuli : " << (int)send_value1 << " at time "
+	   /* << sc_time_stamp() << endl; */
 	   << sc_time_stamp().to_double() << endl;
       send_value1++;
     };

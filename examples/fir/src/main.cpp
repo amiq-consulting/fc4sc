@@ -36,12 +36,9 @@
  *****************************************************************************/
 
 #include <systemc.h>
-#include "fc4sc.hpp"
 #include "stimulus.h"
 #include "display.h"
 #include "fir.h"
-
-#include <fstream>
 
 int sc_main (int, char *[]) {
   sc_clock         clock;
@@ -70,7 +67,6 @@ int sc_main (int, char *[]) {
   display1.result(result); 
 
   sc_start();
-
   return 0;
 }
 

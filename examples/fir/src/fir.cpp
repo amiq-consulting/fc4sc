@@ -30,6 +30,20 @@
   MODIFICATION LOG - modifiers, enter your name, affiliation, date and
   changes you are making here.
  
+      Name, Affiliation: Teodor Vasilache and Dragos Dospinescu,
+                         AMIQ Consulting s.r.l. (contributors@amiq.com)
+                   Date: 2018-Feb-20
+
+  Description of Modification: Added sampling of the covergroup created in the 
+  "fir.h" file.
+            
+ *****************************************************************************/
+
+/*****************************************************************************
+ 
+  MODIFICATION LOG - modifiers, enter your name, affiliation, date and
+  changes you are making here.
+ 
       Name, Affiliation, Date:
   Description of Modification:
     
@@ -37,8 +51,6 @@
 
 #include <systemc.h>
 #include "fir.h"
-
-#include "fc4sc.hpp"
 
 void fir::entry() {
 
@@ -68,28 +80,19 @@ void fir::entry() {
       acc += pro;
     };
 
-
-
     for(int i=14; i>=0; i--) {
       /* this would be an unrolled loop */
       shift[i+1] = shift[i];
     };
 
     shift[0] = sample_tmp;
+    
+    // sample the shift value  
+    shift_cg.sample(shift[0]);
 
-    std::cout << "DEBUG[";
-    for (int i=0; i<15; ++i)
-      std::cout << shift[i] << " ";
-    std::cout << "]\n";
-    
-    fsm_cg.sample(shift);
-    
     // write output values
     result.write((int)acc); 
     output_data_ready.write(true);
-
-
-
     wait();
   };
 }

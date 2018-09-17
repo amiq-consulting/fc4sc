@@ -19,12 +19,26 @@
 
 /*****************************************************************************
  
-  fir.h -- 
- 
+  fir.h --
+
   Original Author: Rocco Jonack, Synopsys, Inc.
- 
+
  *****************************************************************************/
+
+/*****************************************************************************
+
+  MODIFICATION LOG - modifiers, enter your name, affiliation, date and
+  changes you are making here.
  
+      Name, Affiliation: Teodor Vasilache and Dragos Dospinescu,
+                         AMIQ Consulting s.r.l. (contributors@amiq.com)
+                   Date: 2018-Feb-20
+
+  Description of Modification: Included the FC4SC library, created and
+  instantiated a covergroup for collecting shift data coverage.
+            
+ *****************************************************************************/
+
 /*****************************************************************************
  
   MODIFICATION LOG - modifiers, enter your name, affiliation, date and
@@ -47,33 +61,28 @@ SC_MODULE(fir) {
 
   sc_int<9> coefs[16];
 
-  class fsm_coverage : public covergroup {
+  class shift_coverage : public covergroup {
 
     public:
 
     unsigned int SAMPLE_POINT(shifter, shift_cvp);
     
     // Must call parent constructor somewhere register a new cvg
-    CG_CONS(fsm_coverage) {
-    }
+    CG_CONS(shift_coverage) { }
 
-    void sample(sc_int<8> shifter[16]) {
-
-      this->shifter = shifter[0];
-
+    void sample(sc_int<8> shift_data) {
+      this->shifter = shift_data;
       covergroup::sample();
     }
 
     coverpoint<unsigned int> shift_cvp = coverpoint<unsigned int> (this,
         bin<unsigned int>("all1", fc4sc::interval(0,255)),
         bin<unsigned int>("all2", fc4sc::interval(0,255))
-
-        // illegal_bin<unsigned int>("", fc4sc::default)
     );
 
-    };
+  };
 
-    fsm_coverage fsm_cg;
+  shift_coverage shift_cg;
 
 
   SC_CTOR(fir)

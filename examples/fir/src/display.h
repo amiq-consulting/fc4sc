@@ -30,6 +30,20 @@
   MODIFICATION LOG - modifiers, enter your name, affiliation, date and
   changes you are making here.
  
+      Name, Affiliation: Teodor Vasilache and Dragos Dospinescu,
+                         AMIQ Consulting s.r.l. (contributors@amiq.com)
+                   Date: 2018-Feb-20
+
+  Description of Modification: Included the FC4SC library, created and
+  instantiated a covergroup for collecting output coverage.
+            
+ *****************************************************************************/
+
+/*****************************************************************************
+ 
+  MODIFICATION LOG - modifiers, enter your name, affiliation, date and
+  changes you are making here.
+ 
       Name, Affiliation, Date:
   Description of Modification:
     

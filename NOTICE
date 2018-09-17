@@ -1,0 +1,32 @@
+Functional Coverage For SystemC (FC4SC)
+Copyright 2018 AMIQ Consulting s.r.l.
+
+=========================================================================
+==  NOTICE file corresponding to the section 4 d of                    ==
+==  the Apache License, Version 2.0,                                   ==
+==  in this case for the FIR example                                   ==
+=========================================================================
+   
+This product includes software developed by 
+Accellera Systems Initiative, Inc. (www.accellera.com)
+Licensed under Apache 2.0 (https://github.com/aseemm/Accellera-SystemC/blob/master/systemc-2.3.1/LICENSE)
+
+=========================================================================
+==  NOTICE file corresponding to the section 4 d of                    ==
+==  the Apache License, Version 2.0,                                   ==
+==  in this case for the JavaScript gui application                    ==
+=========================================================================
+   
+This product includes software developed by
+Twitter, Inc. (www.twitter.com)
+Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+
+=========================================================================
+==  NOTICE file corresponding to the section 4 d of                    ==
+==  the Apache License, Version 2.0,                                   ==
+==  in this case for the FC4SC test suite                              ==
+=========================================================================
+
+This product is dependent on software developed by
+Google Inc. (www.google.com)
+Licensed under BSD 3-Clause (https://github.com/google/googletest/blob/master/LICENSE)
