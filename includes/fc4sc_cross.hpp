@@ -44,7 +44,6 @@
 using std::get;
 using std::make_tuple;
 using std::map;
-using std::pair;
 using std::tuple;
 using std::tuple_size;
 using std::vector;
@@ -180,23 +179,17 @@ public:
    */
   virtual void sample() 
   {
-
     vector <uint> hit_bins;
-
-    // for (auto& cvp : cvps_vec) {
-    for (int i=0; i < cvps_vec.size(); ++i) {
-      if (cvps_vec[i]->last_sample_success)
-
-        hit_bins.push_back(cvps_vec[i]->last_bin_index_hit);
-
+    for (auto& cvp : cvps_vec) {
+      if (cvp->last_sample_success) {
+        hit_bins.push_back(cvp->last_bin_index_hit);
+      }
       else {
         misses++;
         return;
       }
     }
-
     bins[hit_bins]++;
-
   }
 
   /*!

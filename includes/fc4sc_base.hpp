@@ -51,20 +51,56 @@ using std::vector;
 /*!
  * \brief Macro to register your covergroup.
  *
- *  This macro expands to a constructor for your custom type, which calls a parent constructor
- * to register the new instance, with some aditional info useful for displaying the final report.
+ * This macro expands to a constructor for your custom type, which calls a parent constructor
+ * to register the new instance, with some additional info useful for displaying the final report.
  */
 #define CG_CONS(type, args...) \
+  using covergroup::sample; \
   type(string inst_name = "", ##args) : fc4sc::covergroup(#type, __FILE__, __LINE__, inst_name)
 
 
 /*!
  * \brief Macro to declare a sampling point variable and register some names
- *
  */
 #define SAMPLE_POINT(variable_name, cvp)                                           \
   variable_name = static_cast<decltype(variable_name)>(0);                         \
   bool init_##cvp = this->set_strings(&cvp, &variable_name, #cvp, #variable_name); \
+
+/*
+ * \brief Macro that creates a lambda function which returns the expression given
+ * as argument when called. A pointer to the enclosing class will be bound in order
+ * for the expression to allow local class variables.
+ * The purpose of this macro is to use in the instantiation of coverpoints inside
+ * covergroups and will server as a generator for lambda expressions to be used
+ * when sampling (sample expression and iff conidtions).
+ */
+#define CREATE_WRAP_F(expr, type) [this]() -> type { return (expr); }
+
+#define GET_CVP_MACRO(_1,_2,_3,_4, NAME,...) NAME
+#define COVERPOINT(...) GET_CVP_MACRO(__VA_ARGS__, CVP_4, CVP_3)(__VA_ARGS__)
+
+/*
+ * TODO: find a way to get rid of explicit type instantiation?
+ * Using decltype is problematic because the macro will not work
+ * if the user passes the sample_expr enclosed in parentheses, as
+ * decltype((sample_expr)) will evaluate to a reference of type
+ * decltype(sample_expr). We need a way to strip down
+ * all parentheses enclosing the sample_expr argument.
+ */
+
+// COVERPOINT macro for 3 arguments (no sample condition)
+#define CVP_3(type, cvp_name, sample_expr) \
+	coverpoint<type> cvp_name = \
+	covergroup::register_cvp<type>(&cvp_name, #cvp_name, \
+	CREATE_WRAP_F(sample_expr, type), #sample_expr, \
+	CREATE_WRAP_F(true, bool), std::string("")) =
+
+// COVERPOINT macro for 4 arguments (sample condition included)
+#define CVP_4(type, cvp_name, sample_expr, sample_cond) \
+	coverpoint<type> cvp_name = \
+	covergroup::register_cvp<type>(&cvp_name, #cvp_name, \
+	CREATE_WRAP_F(sample_expr, type), #sample_expr, \
+	CREATE_WRAP_F(sample_cond, bool), #sample_cond) =
 
 /*!
  *  \namespace fc4sc
@@ -72,12 +108,13 @@ using std::vector;
  */
 namespace fc4sc
 {
+template<typename T>
+using interval_t = std::pair<T, T>;
 
-
-  typedef enum fc4sc_format 
-  {
-    ucis_xml = 1
-  } fc4sc_format;
+typedef enum fc4sc_format
+{
+  ucis_xml = 1
+} fc4sc_format;
 
 
 /*!
@@ -90,9 +127,9 @@ namespace fc4sc
  *  in a more verbose way.
  */
 template <typename T>
-static pair<T, T> interval(T t1, T t2)
+static interval_t<T> interval(T t1, T t2)
 {
-  return std::make_pair(t1, t2);
+  return interval_t<T>(t1, t2);
 }
 
 /*!
@@ -196,11 +233,12 @@ public:
   /*! The sampled expression stringified */
   string expr_str;
 
+protected:
   /*! Name of the enclosing covergroup */
   string p_name;
-
   /*! If strings have been initialized */
   bool init = false;
+public:
 
   /*! Instance specific options */
   cvp_option option;

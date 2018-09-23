@@ -19,41 +19,44 @@
    Original Authors: Teodor Vasilache and Dragos Dospinescu,
                      AMIQ Consulting s.r.l. (contributors@amiq.com)
 
-               Date: 2018-Feb-20
+               Date: 2018-Sep-24
 ******************************************************************************/
 
-/*!
- \file fc.hpp
- \brief Library entry point. Must always be include to use FC4SC.
+#include "fc4sc.hpp"
+#include "gtest/gtest.h"
 
-  Includes all the necessary headers and helpers for FC4SC to work:
+class cvp_sample_cond_test : public covergroup {
+public:
+  CG_CONS(cvp_sample_cond_test) {
+  };
 
-    - \link fc4sc::covergroup \endlink definition
-    - \link fc4sc::coverpoint \endlink definition
-    - \link fc4sc::cross \endlink definition
-    - \link fc4sc::bin \endlink / \link fc4sc::illegal_bin \endlink definition
+  int value = 0;
 
- */
+  COVERPOINT(int, never_sample_cvp, value, false) {
+    illegal_bin<int>(3),
+    ignore_bin<int>(2),
+    bin<int>(4)
+  };
 
-#ifndef FC4SC_HPP
-#define FC4SC_HPP
+  COVERPOINT(int, odd_values_cvp, value, value % 2 == 1) {
+    bin_array<int>("1_to_10", 10, interval(1, 10))
+  };
+};
 
-#include "fc4sc_intervals.hpp"
-#include "fc4sc_options.hpp"
-#include "fc4sc_binsof.hpp"
-#include "fc4sc_bin.hpp"
-#include "fc4sc_coverpoint.hpp"
-#include "fc4sc_cross.hpp"
-#include "fc4sc_covergroup.hpp"
+TEST(cvp_sample, sample_condition) {
+  cvp_sample_cond_test cvg;
 
-using fc4sc::interval;
-using fc4sc::bin;
-using fc4sc::bin_array;
-using fc4sc::binsof;
-using fc4sc::ignore_bin;
-using fc4sc::illegal_bin;
-using fc4sc::coverpoint;
-using fc4sc::cross;
-using fc4sc::covergroup;
+  EXPECT_EQ(cvg.get_inst_coverage(), 0);
 
-#endif /* FC4SC_HPP */
+  for (auto i: {1,2,3,4,5,6,7,8,9,10}) {
+      EXPECT_EQ(cvg.odd_values_cvp.get_inst_coverage(), (i / 2) * 10);
+      EXPECT_EQ(cvg.never_sample_cvp.get_inst_coverage(), 0);
+      EXPECT_EQ(cvg.get_inst_coverage(), cvg.odd_values_cvp.get_inst_coverage() / 2);
+      cvg.value = i;
+      cvg.sample(); // default sample function
+  }
+
+  EXPECT_EQ(cvg.odd_values_cvp.get_inst_coverage(), 50);
+  EXPECT_EQ(cvg.never_sample_cvp.get_inst_coverage(), 0);
+  EXPECT_EQ(cvg.get_inst_coverage(), 25);
+}

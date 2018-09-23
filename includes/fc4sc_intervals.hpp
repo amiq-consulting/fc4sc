@@ -33,16 +33,16 @@ using std::min;
 namespace fc4sc {
 
   template <typename T>
-  static vector<pair<T,T>> reunion(const vector<pair<T,T>>& lhs, const vector<pair<T,T>>& rhs) {
+  static vector<interval_t<T>> reunion(const vector<interval_t<T>>& lhs, const vector<interval_t<T>>& rhs) {
 
-    vector<pair<T,T>> new_bins = lhs;
+    vector<interval_t<T>> new_bins = lhs;
     new_bins.insert(new_bins.end() ,rhs.begin(), rhs.end());
 
-    std::sort(new_bins.begin(), new_bins.end(), [](const pair<T,T>& lhs, const pair<T,T>& rhs) {
+    std::sort(new_bins.begin(), new_bins.end(), [](const interval_t<T>& lhs, const interval_t<T>& rhs) {
       return lhs.first < rhs.first;
     }); 
 
-    vector<pair<T,T>> result_bins;
+    vector<interval_t<T>> result_bins;
     result_bins.push_back(new_bins[0]);
 
 
@@ -59,12 +59,12 @@ namespace fc4sc {
   }
 
   template <typename T>
-  static vector<pair<T,T>> intersection(const vector<pair<T,T>>& lhs, const vector<pair<T,T>>& rhs) {
+  static vector<interval_t<T>> intersection(const vector<interval_t<T>>& lhs, const vector<interval_t<T>>& rhs) {
 
     auto disjoint_lhs = reunion(lhs, {});
     auto disjoint_rhs = reunion(rhs, {});
 
-    vector<pair<T,T>> results;
+    vector<interval_t<T>> results;
 
     for (auto &it_lhs: disjoint_lhs) {
       for (auto &it_rhs: disjoint_rhs) {
@@ -89,25 +89,25 @@ namespace fc4sc {
   }
 
   template <typename T>
-  static vector<pair<T,T>> reunion(const bin<T>& lhs, const vector<pair<T,T>>& rhs) {
+  static vector<interval_t<T>> reunion(const bin<T>& lhs, const vector<interval_t<T>>& rhs) {
     return reunion(lhs.intervals, rhs);
   }
 
   template <typename T>
-  static vector<pair<T,T>> reunion(const bin<T>& lhs, const bin<T>& rhs) {
+  static vector<interval_t<T>> reunion(const bin<T>& lhs, const bin<T>& rhs) {
     return reunion(lhs.intervals, rhs.intervals);
   }
 
   template <typename T>
-  static vector<pair<T,T>> intersection(const bin<T>& lhs, const vector<pair<T,T>>& rhs) {
+  static vector<interval_t<T>> intersection(const bin<T>& lhs, const vector<interval_t<T>>& rhs) {
     return intersection(lhs.intervals, rhs);
   }
 
   template <typename T>
-  static vector<pair<T,T>> intersection(const bin<T>& lhs, const bin<T>& rhs) {
+  static vector<interval_t<T>> intersection(const bin<T>& lhs, const bin<T>& rhs) {
     return intersection(lhs.intervals, rhs.intervals);
   }
-  
+
 }
 
 #endif

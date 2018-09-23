@@ -54,10 +54,33 @@ namespace fc4sc
  */
 class covergroup : public cvg_base
 {
+protected:
+  /*
+   * This function registeres a coverpoint instance inside this covergroup.
+   */
+  template<typename T>
+  coverpoint <T> register_cvp(coverpoint <T>* cvp, std::string&& cvp_name,
+    std::function<T()>&& sample_expr, std::string&& sample_expr_str,
+    std::function<bool()>&& sample_cond, std::string&& sample_cond_str) {
+
+    // Runtime check to make sure that all the coverpoints are different
+    // normally, this should be the case, but if the user decides to use
+    // this function itself instead of using the provided macro, we make
+    // sure that the damadge is minimal at least.
+    if (std::find(std::begin(cvps), std::end(cvps), cvp) != std::end(cvps))
+      throw ("Coverpoint already registered in this covergroup!");
+
+    coverpoint<T> cvp_structure;
+    cvp_structure.sample_expression = sample_expr;
+    cvp_structure.sample_condition = sample_cond;
+    cvp_structure.sample_expression_str = sample_expr_str;
+    cvp_structure.sample_condition_str = sample_cond_str;
+    cvp_structure.name = cvp_name;
+    cvps.push_back(cvp);
+    return cvp_structure;
+  }
 
   unordered_map<cvp_base *, tuple<void*, string, string> > cvp_strings;
-
-protected:
 
    /*!
    * \brief Registers an instance and some info to \link fc4sc::global_access \endlink
@@ -71,16 +94,11 @@ protected:
     this->type_name = type_name;
     this->file_name = file_name;
     this->line = line;
-
     fc4sc::global::register_new(this, type_name, file_name, line, inst_name);
   }
 
-
 public:
-
-
   bool set_strings(cvp_base *cvp, void *sample_point, const string& cvp_name, const string& expr_name) {
-
     cvp_strings[cvp] = make_tuple(sample_point, cvp_name, expr_name);
     return true;
   }
@@ -92,25 +110,18 @@ public:
   covergroup() = default;
 
   /*! Destructor */
-  virtual ~covergroup()
-  {
-    fc4sc::global::register_delete(this);
-  }
-
+  virtual ~covergroup() { fc4sc::global::register_delete(this); }
   /*! Disabled */
   virtual covergroup &operator=(const covergroup &other) = delete;
-
   /*! Disabled */
   covergroup(const covergroup &other) = delete;
-
-  // /*! Disabled */
+  /*! Disabled */
   covergroup(covergroup &&other) = delete;
-
   // ! Disabled
   covergroup &operator=(covergroup &&other) = delete;
 
-  void sample() {
-    for (auto& cvp : this->cvps) 
+  virtual void sample() {
+    for (auto& cvp : this->cvps)
       cvp->sample();
   }
 

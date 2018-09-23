@@ -40,7 +40,7 @@ class binsof {
 
 public:
 
-	vector<pair<T,T>> allowed_bins;
+	vector<interval_t<T>> allowed_bins;
 
 	binsof() {};
 	
@@ -53,15 +53,15 @@ public:
 	};
 
 	binsof<T>& operator||(const binsof<T> &rhs) {
-
+		return *this;
 	};
 
 	binsof<T>& operator&&(const binsof<T> &rhs) {
-
+		return *this;
 	};
 
 	binsof<T>& intersect() {
-
+		return *this;
 	}
 
 };

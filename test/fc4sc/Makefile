@@ -20,15 +20,20 @@
 #               Date: 2018-Feb-20
 #******************************************************************************#
 
+# in order to compile with debug flags, use: 
+# make DEBUGFLAGS="-ggdb -g3"
+
 SRC_DIR := .
 OBJ_DIR := ./obj
 GOOGLE_TEST_HOME := ./../googletest/
 INCLUDE_FC4SC := -I./../../includes
 SRC_FILES := $(wildcard $(SRC_DIR)/*.cpp)
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_FILES))
+
 LDFLAGS := -lpthread -L $(GOOGLE_TEST_HOME)/build/googlemock/gtest -lgtest
 CPPFLAGS := -I $(GOOGLE_TEST_HOME)/googletest/include $(INCLUDE_FC4SC)
-CXXFLAGS := -std=c++11 -Wall
+CXXFLAGS := -std=c++11 -Wextra $(DEBUGFLAGS)
+
 CC := g++
 EXEC := main.exe
 

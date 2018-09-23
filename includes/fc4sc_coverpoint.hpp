@@ -36,7 +36,9 @@
 #include <type_traits>
 #include <list>
 #include <unordered_map>
+#include <functional>
 #include <tuple>
+#include <algorithm> // std::find
 
 #include "fc4sc_bin.hpp"
 
@@ -57,41 +59,78 @@ class cross;
  * \brief Defines a class for coverpoints
  * \tparam T Type of bins that this coverpoint is holding
  */
-template <class T>
-class coverpoint : public cvp_base
-{
-  static_assert(std::is_arithmetic<T>::value, "Type must be numeric!");
 
+template <class T>
+class coverpoint;
+
+class covergroup;
+
+template <class T>
+class coverpoint final : public cvp_base
+{
+private:
+  // static check to make sure that the coverpoint is templated by a numeric type
+  static_assert(std::is_arithmetic<T>::value, "Type must be numeric!");
+  /*
+   * The covergroup class needs access to private members of the coverpoint in order to
+   * set the sample condition, expression and name.
+   * This id done in function
+   */
+  friend class covergroup;
+  // friend functions that can insert into the bin vectors -> add_to_cvp(coverpoint<T>&)
+  friend class bin<T>;
+  friend class bin_array<T>;
+  friend class ignore_bin<T>;
+  friend class illegal_bin<T>;
+
+  /*!
+   * String-ified sample expression. It can be used for reporting.
+   * When the string is empty, no sample expression is registered.
+   */
+  std::string sample_expression_str;
+  /*! Expression used to sample the data */
+  std::function<T()> sample_expression;
+
+  /*!
+   * String-ified sample condition. It can be used for reporting.
+   * When the string is empty, no sample condition is registered.
+   */
+  std::string sample_condition_str;
+  /*! Condition based on which the sampling takes place or not */
+  std::function<bool()> sample_condition;
+
+  // TODO: remove after complete implementation of the sample expression
   T* sample_point = nullptr;
 
-  /*! Default bins declared in this coverpoint */
+  /*! bins contained in this coverpoint */
+  vector<bin<T>> bins;
+  /*! bin_arrays contained in this coverpoint */
   vector<bin_array<T>> bin_arrays;
-
-  /*! Illegal bins declared in this coverpoint */
+  /*! Illegal bins contained in this coverpoint */
   vector<illegal_bin<T>> illegal_bins;
-
-  /*! Ignore bins declared in this coverpoint */
+  /*! Ignore bins contained in this coverpoint */
   vector<ignore_bin<T>> ignore_bins;
 
   /*! Sampling switch */
   bool colect = true;
 
 
-    /*!
+  bool has_sample_condition() { return !sample_condition_str.empty(); }
+  bool has_sample_expression() { return !sample_expression_str.empty(); }
+
+  /*!
    *  \brief Sampling function at coverpoint level
    *  \param cvp_val Value to be sampled for this coverpoint
    *
    *  Takes a value and searches it in the owned bins
    */
-  void sample(const T &cvp_val)
-  {
+  void sample(const T &cvp_val)  {
 
 #ifdef FC4SC_DISABLE_SAMPLING
     return;
 #endif
 
-    if (!colect)
-      return;
+    if (!colect) return;
 
     for (auto& ig_bin_it : ignore_bins)
       if(ig_bin_it.sample(cvp_val)) {
@@ -100,13 +139,8 @@ class coverpoint : public cvp_base
       }
 
     // First search in illegal bins
-    for (auto& il_bin_hit : illegal_bins)
-    {
-
-      try
-      {
-        il_bin_hit.sample(cvp_val);
-      }
+    for (auto& il_bin_hit : illegal_bins) {
+      try { il_bin_hit.sample(cvp_val);  }
       catch (const string &e)
       {
         // Illegal bin hit -> show error
@@ -116,7 +150,6 @@ class coverpoint : public cvp_base
         cerr << "Stopping simulation\n";
         throw(e);
 #endif
-
       }
     }
 
@@ -135,9 +168,7 @@ class coverpoint : public cvp_base
     }
 
     // Sample default bins
-    for (uint i = 0; i < bins.size(); ++i)
-    // for (auto& bin : bins)
-    {
+    for (uint i = 0; i < bins.size(); ++i) {
       if (bins[i].sample(cvp_val)) {
         this->last_bin_index_hit = i;
         this->last_sample_success = 1;
@@ -147,13 +178,36 @@ class coverpoint : public cvp_base
   
     this->last_sample_success = 0;
     misses++;
-
   }
 
 public:
 
-  /*! Default bins declared in this coverpoint */
-  vector<bin<T>> bins;
+  coverpoint<T>& operator=(coverpoint<T>& rh) = delete;
+
+  /*
+   * Initialization constructor. It is used as a "hack" designed to extract the
+   * sampling expression and condition from the enclosing covergroup.
+   */
+  coverpoint(const coverpoint<T>& rh) {
+    // TODO: add mechanism to make sure that this is only called by the use of COVERGROUP macro;
+    this->sample_expression = (rh.sample_expression);
+    this->sample_condition = (rh.sample_condition);
+    this->sample_expression_str = (rh.sample_expression_str);
+    this->sample_condition_str = (rh.sample_condition_str);
+    this->bins = rh.bins;
+    this->bin_arrays = rh.bin_arrays;
+    this->ignore_bins = rh.ignore_bins;
+    this->illegal_bins = rh.illegal_bins;
+  }
+
+  coverpoint<T>& operator=(coverpoint<T>&& rh) {
+    // TODO: add mechanism to make sure that this is only called by the use of COVERGROUP macro;
+    this->bins = std::move(rh.bins);
+    this->bin_arrays = std::move(rh.bin_arrays);
+    this->ignore_bins = std::move(rh.ignore_bins);
+    this->illegal_bins = std::move(rh.illegal_bins);
+    return *this;
+  }
 
   /*! Default constructor */
   coverpoint()
@@ -163,17 +217,25 @@ public:
     misses = 0;
   }
 
-  ~coverpoint()
-  {
+  ~coverpoint() = default;
+
+  /*!
+   * \brief Initializer list constructor that receives a list of bin (of any types,
+   * even mixed) and registers all the bins in this coverpoint.
+   */
+  coverpoint(std::initializer_list<bin_wrapper<T>> list) {
+    for (auto &bin_w : list) {
+      bin_w.get_bin()->add_to_cvp(*this);
+    }
   }
 
+  // TODO: remove all constructors after completing the implementation of the sample expression?
   /*!
    *  \brief Constructor that registers a new default bin
    */
   template <typename... Args>
   coverpoint(bin<T> n, Args... args) : coverpoint(args...)
   {
-
     if (!n.is_empty())
     {
       reverse(n.intervals.begin(), n.intervals.end());
@@ -210,14 +272,12 @@ public:
   template <typename... Args>
   coverpoint(ignore_bin<T> n, Args... args) : coverpoint(args...)
   {
-
     if (!n.is_empty())
     {
       reverse(n.intervals.begin(), n.intervals.end());
       ignore_bins.push_back(n);
     }
   }
-
 
   /*!
    *  \brief Constructor that takes the parent covergroup.
@@ -236,7 +296,6 @@ public:
     this->sample_point = static_cast<T *>(get<0>(strings));
     this->name = get<1>(strings);
     this->expr_str = get<2>(strings);
-
   }
 
   template <typename... Args>
@@ -249,18 +308,21 @@ public:
    *  Retrieves the number of default bins
    */
   uint64_t size() {
-
     uint64_t total_size = 0;
-
     for (auto arr : bin_arrays)
       total_size += arr.size();
-
     return total_size + bins.size();
   }
 
   void sample() 
   {
-    this->sample(*sample_point);
+    if (has_sample_expression()) {
+      if (!has_sample_condition() || sample_condition())
+	this->sample(sample_expression());
+    }
+    else { // TODO: remove else branch when 100% migration from SAMPLE_POINT to WITH_SAMPLE
+      this->sample(*sample_point);
+    }
   }
 
   /*!
@@ -269,10 +331,9 @@ public:
    */
   double get_inst_coverage() const 
   {
-
     double res = 0;
 
-    if (bins.size() == 0)
+    if (bins.empty() && bin_arrays.empty()) // no bins or bin arrays defined
     {
       if (option.weight == 0)
         return 100;

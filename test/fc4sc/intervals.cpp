@@ -32,12 +32,12 @@ TEST(intervals, reunion) {
   bin<int> c("3", interval(1,3), interval(3,6), interval(6,9) );
   bin<int> d("4", interval(2,4), interval(4,6) , interval(6,8), interval(10,19) );
 
-  vector<pair<int,int>> a_ = {interval(1,5), interval(7,7), interval(8,20) };
-  vector<pair<int,int>> b_ = {interval(2,3), interval(5,9) };
-  vector<pair<int,int>> c_ = {interval(1,9)};
-  vector<pair<int,int>> d_ = {interval(2,8), interval(10,19)};
+  vector<fc4sc::interval_t<int>> a_ = {interval(1,5), interval(7,7), interval(8,20) };
+  vector<fc4sc::interval_t<int>> b_ = {interval(2,3), interval(5,9) };
+  vector<fc4sc::interval_t<int>> c_ = {interval(1,9)};
+  vector<fc4sc::interval_t<int>> d_ = {interval(2,8), interval(10,19)};
 
-  vector<pair<int,int>> a_b = {interval(1,20)};
+  vector<fc4sc::interval_t<int>> a_b = {interval(1,20)};
 
   auto a_self = reunion(a,a);
   auto b_self = reunion(b,b);
