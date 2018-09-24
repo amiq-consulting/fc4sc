@@ -114,9 +114,16 @@ private:
   /*! Sampling switch */
   bool colect = true;
 
-
   bool has_sample_condition() { return !sample_condition_str.empty(); }
   bool has_sample_expression() { return !sample_expression_str.empty(); }
+
+  //
+  coverpoint<T>& operator=(coverpoint<T>& rh) = delete;
+  /*
+   * kept for backwards compatibility with previous instantiation method:
+   * coverpoint<int> cvp = coverpoint<int> (...);
+   */
+  // coverpoint(coverpoint<T>&& rh) = delete;
 
   /*!
    *  \brief Sampling function at coverpoint level
@@ -181,23 +188,22 @@ private:
   }
 
 public:
-
-  coverpoint<T>& operator=(coverpoint<T>& rh) = delete;
-
   /*
    * Initialization constructor. It is used as a "hack" designed to extract the
    * sampling expression and condition from the enclosing covergroup.
    */
   coverpoint(const coverpoint<T>& rh) {
-    // TODO: add mechanism to make sure that this is only called by the use of COVERGROUP macro;
-    this->sample_expression = (rh.sample_expression);
-    this->sample_condition = (rh.sample_condition);
-    this->sample_expression_str = (rh.sample_expression_str);
-    this->sample_condition_str = (rh.sample_condition_str);
-    this->bins = rh.bins;
-    this->bin_arrays = rh.bin_arrays;
-    this->ignore_bins = rh.ignore_bins;
-    this->illegal_bins = rh.illegal_bins;
+	// TODO: add mechanism to make sure that this is only called by the use of COVERGROUP macro;
+	this->sample_expression = rh.sample_expression;
+	this->sample_condition = rh.sample_condition;
+	this->sample_expression_str = rh.sample_expression_str;
+	this->sample_condition_str = rh.sample_condition_str;
+	this->expr_str = rh.sample_expression_str;
+	this->bins = rh.bins;
+	this->bin_arrays = rh.bin_arrays;
+	this->ignore_bins = rh.ignore_bins;
+	this->illegal_bins = rh.illegal_bins;
+	this->name = rh.name;
   }
 
   coverpoint<T>& operator=(coverpoint<T>&& rh) {
