@@ -83,6 +83,7 @@ private:
   friend class ignore_bin<T>;
   friend class illegal_bin<T>;
 
+  bool has_sample_expression = false;
   /*!
    * String-ified sample expression. It can be used for reporting.
    * When the string is empty, no sample expression is registered.
@@ -99,7 +100,7 @@ private:
   /*! Condition based on which the sampling takes place or not */
   std::function<bool()> sample_condition;
 
-  // TODO: remove after complete implementation of the sample expression
+  // pointer sample variable (assigned via SAMPLE_POINT macro)
   T* sample_point = nullptr;
 
   /*! bins contained in this coverpoint */
@@ -115,7 +116,6 @@ private:
   bool colect = true;
 
   bool has_sample_condition() { return !sample_condition_str.empty(); }
-  bool has_sample_expression() { return !sample_expression_str.empty(); }
 
   //
   coverpoint<T>& operator=(coverpoint<T>& rh) = delete;
@@ -193,17 +193,17 @@ public:
    * sampling expression and condition from the enclosing covergroup.
    */
   coverpoint(const coverpoint<T>& rh) {
-	// TODO: add mechanism to make sure that this is only called by the use of COVERGROUP macro;
-	this->sample_expression = rh.sample_expression;
-	this->sample_condition = rh.sample_condition;
-	this->sample_expression_str = rh.sample_expression_str;
-	this->sample_condition_str = rh.sample_condition_str;
-	this->expr_str = rh.sample_expression_str;
-	this->bins = rh.bins;
-	this->bin_arrays = rh.bin_arrays;
-	this->ignore_bins = rh.ignore_bins;
-	this->illegal_bins = rh.illegal_bins;
-	this->name = rh.name;
+    // TODO: add mechanism to make sure that this is only called by the use of COVERGROUP macro;
+    this->has_sample_expression = true;
+    this->sample_expression = rh.sample_expression;
+    this->sample_condition = rh.sample_condition;
+    this->sample_expression_str = rh.sample_expression_str;
+    this->sample_condition_str = rh.sample_condition_str;
+    this->bins = rh.bins;
+    this->bin_arrays = rh.bin_arrays;
+    this->ignore_bins = rh.ignore_bins;
+    this->illegal_bins = rh.illegal_bins;
+    this->name = rh.name;
   }
 
   coverpoint<T>& operator=(coverpoint<T>&& rh) {
@@ -301,7 +301,7 @@ public:
 
     this->sample_point = static_cast<T *>(get<0>(strings));
     this->name = get<1>(strings);
-    this->expr_str = get<2>(strings);
+    this->sample_expression_str = get<2>(strings);
   }
 
   template <typename... Args>
@@ -322,11 +322,11 @@ public:
 
   void sample() 
   {
-    if (has_sample_expression()) {
+    if (has_sample_expression) {
       if (!has_sample_condition() || sample_condition())
-	this->sample(sample_expression());
+         this->sample(sample_expression());
     }
-    else { // TODO: remove else branch when 100% migration from SAMPLE_POINT to WITH_SAMPLE
+    else {
       this->sample(*sample_point);
     }
   }
@@ -447,7 +447,7 @@ public:
     stream << "key=\""
            << "KEY"
            << "\" ";
-    stream << "exprString=\"" << this->expr_str << "\"";
+    stream << "exprString=\"" << this->sample_expression_str << "\"";
     stream << ">\n";
 
     stream << option << "\n";

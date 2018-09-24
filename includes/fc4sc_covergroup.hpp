@@ -47,7 +47,6 @@ using std::make_tuple;
 
 namespace fc4sc
 {
-
 /*!
  * \class covergroup covergroup.hpp
  * \brief Covergroup option declaration
@@ -80,7 +79,7 @@ protected:
     return cvp_structure;
   }
 
-  unordered_map<cvp_base *, tuple<void*, string, string> > cvp_strings;
+  unordered_map<cvp_base *, cvp_metadata_t> cvp_strings;
 
    /*!
    * \brief Registers an instance and some info to \link fc4sc::global_access \endlink
@@ -97,15 +96,16 @@ protected:
     fc4sc::global::register_new(this, type_name, file_name, line, inst_name);
   }
 
-public:
-  bool set_strings(cvp_base *cvp, void *sample_point, const string& cvp_name, const string& expr_name) {
-    cvp_strings[cvp] = make_tuple(sample_point, cvp_name, expr_name);
-    return true;
+  uint32_t set_strings(cvp_base *cvp, void *sample_point, const string& cvp_name, const string& expr_name) {
+    cvp_strings[cvp] = cvp_metadata_t(sample_point, cvp_name, expr_name);
+    return 0;
   }
 
-  virtual tuple<void*, string, string> get_strings(cvp_base *cvp) {
+  virtual cvp_metadata_t get_strings(cvp_base *cvp) {
     return cvp_strings[cvp];
   }
+
+public:
  
   covergroup() = default;
 
@@ -131,7 +131,6 @@ public:
    */
   double get_inst_coverage()  const 
   {
-
     double res = 0;
     double weights = 0;
 

@@ -62,9 +62,8 @@ using std::vector;
 /*!
  * \brief Macro to declare a sampling point variable and register some names
  */
-#define SAMPLE_POINT(variable_name, cvp)                                           \
-  variable_name = static_cast<decltype(variable_name)>(0);                         \
-  bool init_##cvp = this->set_strings(&cvp, &variable_name, #cvp, #variable_name); \
+#define SAMPLE_POINT(variable_name, cvp) variable_name = static_cast<decltype(variable_name)> \
+  (covergroup::set_strings(&cvp, &variable_name, #cvp, #variable_name));
 
 /*
  * \brief Macro that creates a lambda function which returns the expression given
@@ -90,17 +89,17 @@ using std::vector;
 
 // COVERPOINT macro for 3 arguments (no sample condition)
 #define CVP_3(type, cvp_name, sample_expr) \
-	coverpoint<type> cvp_name = \
-	covergroup::register_cvp<type>(&cvp_name, #cvp_name, \
-	CREATE_WRAP_F(sample_expr, type), #sample_expr, \
-	CREATE_WRAP_F(true, bool), std::string("")) =
+        coverpoint<type> cvp_name = \
+        covergroup::register_cvp<type>(&cvp_name, #cvp_name, \
+        CREATE_WRAP_F(sample_expr, type), #sample_expr, \
+        CREATE_WRAP_F(true, bool), std::string("")) =
 
 // COVERPOINT macro for 4 arguments (sample condition included)
 #define CVP_4(type, cvp_name, sample_expr, sample_cond) \
-	coverpoint<type> cvp_name = \
-	covergroup::register_cvp<type>(&cvp_name, #cvp_name, \
-	CREATE_WRAP_F(sample_expr, type), #sample_expr, \
-	CREATE_WRAP_F(sample_cond, bool), #sample_cond) =
+        coverpoint<type> cvp_name = \
+        covergroup::register_cvp<type>(&cvp_name, #cvp_name, \
+        CREATE_WRAP_F(sample_expr, type), #sample_expr, \
+        CREATE_WRAP_F(sample_cond, bool), #sample_cond) =
 
 /*!
  *  \namespace fc4sc
@@ -111,11 +110,11 @@ namespace fc4sc
 template<typename T>
 using interval_t = std::pair<T, T>;
 
-typedef enum fc4sc_format
-{
+using cvp_metadata_t = tuple<void*, string, string>;
+
+typedef enum fc4sc_format {
   ucis_xml = 1
 } fc4sc_format;
-
 
 /*!
  *  \brief Alias to std::make_pair
@@ -127,8 +126,7 @@ typedef enum fc4sc_format
  *  in a more verbose way.
  */
 template <typename T>
-static interval_t<T> interval(T t1, T t2)
-{
+static interval_t<T> interval(T t1, T t2) {
   return interval_t<T>(t1, t2);
 }
 
@@ -224,21 +222,13 @@ public:
  */
 class cvp_base : public api_base
 {
-
-public:
-
-  uint last_bin_index_hit;
-  uint last_sample_success;
-
-  /*! The sampled expression stringified */
-  string expr_str;
-
 protected:
   /*! Name of the enclosing covergroup */
   string p_name;
-  /*! If strings have been initialized */
-  bool init = false;
+
 public:
+  uint last_bin_index_hit;
+  uint last_sample_success;
 
   /*! Instance specific options */
   cvp_option option;
@@ -251,25 +241,6 @@ public:
 
   /*! Destructor */
   virtual ~cvp_base(){};
-
-  /*! Sets string members to given values
-   *  \param name Name of the coverpoint (if another isn't already assigned)
-   *  \param p_name Name of the enclosing covergroup
-   *  \param expr Name of the arguments given to sample
-   */
-  virtual bool set_strings(const string &name, const string &p_name, const string &expr)
-  {
-
-    if (this->name.empty())
-      this->name = name;
-
-    this->expr_str = expr;
-    this->p_name = p_name;
-    this->init = true;
-
-    return true;
-  }
-
 };
 
 /*!
@@ -283,7 +254,7 @@ class cvg_base : public api_base
 public:
 
   /*! Retrieve sampling point, instance name and sampling point name */ 
-  virtual tuple<void*, string, string> get_strings(cvp_base *cvp) = 0;  
+  virtual cvp_metadata_t get_strings(cvp_base *cvp) = 0;
 
   /*! Array of associated coverpoints and crosses */
   vector<cvp_base *> cvps;
