@@ -88,14 +88,11 @@ static vector<pair<T,T>> intersection(const bin<T>& lhs, const vector<pair<T,T>>
 template <class T>
 class bin : public bin_base
 {
-
   static_assert(std::is_arithmetic<T>::value, "Type must be numeric!");
-    
   friend binsof<T>;
   friend coverpoint<T>;
 
 protected:
-
   void print_xml_header(ostream &stream, const string &type) const
   {
     stream << "<ucis:coverpointBin name=\"" << name << "\" \n";
@@ -105,7 +102,7 @@ protected:
            << "alias=\"" << get_hitcount() << "\""
            << ">\n";
   }
-
+  /*! Stores the number of hits registered in this bin */
   uint64_t hits = 0;
 
   /*! Storage for the values. All are converted to intervals */
@@ -114,17 +111,17 @@ protected:
   /*! Name of the bin */
   string name;
 
-public:
-
+private:
+  // These constructors are private, making the only public constructor be
+  // the one which receives a name as the first argument. This forces the user
+  // to give a name for each instantiated bin.
   /*!
    *  \brief Takes a value and wraps it in a pair
    *  \param value Value associated with the bin
    *  \param args Rest of arguments
    */
   template <typename... Args>
-  bin(T value, Args... args) : bin(args...)
-  {
-
+  bin(T value, Args... args) : bin(args...) {
     intervals.push_back(interval(value, value));
   }
 
@@ -134,32 +131,28 @@ public:
    *  \param args Rest of arguments
    */
   template <typename... Args>
-  bin(pair<T, T> interval, Args... args) : bin(args...)
-  {
-
-    if (interval.first > interval.second)
-    {
+  bin(pair<T, T> interval, Args... args) : bin(args...) {
+    if (interval.first > interval.second) {
       std::swap(interval.first, interval.second);
     }
-
     intervals.push_back(interval);
   }
 
+public:
   /*!
    *  \brief Takes the bin name
    *  \param bin_name Name of the bin
    *  \param args Rest of arguments
    */
   template <typename... Args>
-  bin(const string &bin_name, Args... args) : bin(args...)
-  {
+  bin(const string &bin_name, Args... args) : bin(args...) {
     this->name = bin_name;
   }
 
   /*!
    *  \brief Default constructor
    */
-  bin() {}
+  bin() : name("empty_bin") {};
 
   /*! Destructor */
   virtual ~bin(){};
@@ -175,7 +168,6 @@ public:
    */
   uint64_t sample(const T &val)
   {
-
     // Just search for the value in the intervals we have
     for (auto i : intervals)
       if (val >= i.first && val <= i.second)
@@ -194,7 +186,6 @@ public:
    */
   bool contains(const T &val) const
   {
-
     for (uint i = 0; i < intervals.size(); ++i)
       if (intervals[i].first <= val && intervals[i].second >= val)
         return true;

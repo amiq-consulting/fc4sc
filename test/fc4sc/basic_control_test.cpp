@@ -39,8 +39,8 @@ public:
     covergroup::sample();
   }
 
-  coverpoint<int> cvp1 = coverpoint<int> (this, bin<int>(1));
-  coverpoint<int> cvp2 = coverpoint<int> (this, bin<int>(1));
+  coverpoint<int> cvp1 = coverpoint<int> (this, bin<int>("1", 1));
+  coverpoint<int> cvp2 = coverpoint<int> (this, bin<int>("2", 1));
 };
 
 

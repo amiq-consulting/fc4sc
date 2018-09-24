@@ -44,13 +44,13 @@ public:
   }
 
   coverpoint<int> cvp1 = coverpoint<int> (this, "cvp1",
-    bin<int>(1),
-    bin<int>(2)
+    bin<int>("1", 1),
+    bin<int>("2", 2)
   );
 
   coverpoint<int> cvp2 = coverpoint<int> (this, "cvp2",
-    bin<int>(1), 
-    bin<int>(2)
+    bin<int>("1", 1),
+    bin<int>("2", 2)
   );
 
   cross<int,int> cross1 = cross<int,int> (this, "cross1",
