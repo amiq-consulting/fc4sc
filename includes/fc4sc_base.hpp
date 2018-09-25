@@ -42,12 +42,6 @@
 
 #include "fc4sc_options.hpp"
 
-using std::tuple;
-using std::ostream;
-using std::pair;
-using std::string;
-using std::vector;
-
 /*!
  * \brief Macro to register your covergroup.
  *
@@ -56,7 +50,7 @@ using std::vector;
  */
 #define CG_CONS(type, args...) \
   using covergroup::sample; \
-  type(string inst_name = "", ##args) : fc4sc::covergroup(#type, __FILE__, __LINE__, inst_name)
+  type(std::string inst_name = "", ##args) : fc4sc::covergroup(#type, __FILE__, __LINE__, inst_name)
 
 
 /*!
@@ -110,7 +104,7 @@ namespace fc4sc
 template<typename T>
 using interval_t = std::pair<T, T>;
 
-using cvp_metadata_t = tuple<void*, string, string>;
+using cvp_metadata_t = std::tuple<void*, string, string>;
 
 typedef enum fc4sc_format {
   ucis_xml = 1
@@ -143,7 +137,7 @@ public:
    * \brief Function to print a bin to UCIS XML
    * \param stream Where to print
    */
-  virtual void to_xml(ostream &stream) const = 0;
+  virtual void to_xml(std::ostream &stream) const = 0;
 
   /*!
    * \brief Returns total number of hits
@@ -206,7 +200,7 @@ public:
     * \brief Function to print an item to UCIS XML
     * \param stream Where to print
     */
-  virtual void to_xml(ostream &stream) const = 0;
+  virtual void to_xml(std::ostream &stream) const = 0;
 
   virtual void sample() = 0;
 
@@ -257,7 +251,7 @@ public:
   virtual cvp_metadata_t get_strings(cvp_base *cvp) = 0;
 
   /*! Array of associated coverpoints and crosses */
-  vector<cvp_base *> cvps;
+  std::vector<cvp_base *> cvps;
 
   /*! Instance specific options */
   cvg_option option;
@@ -266,13 +260,13 @@ public:
   cvg_type_option type_option;
 
   /*! Name of the covergroup type */
-  string type_name;
+  std::string type_name;
 
   /*! File where this type is declared */
-  string file_name;
+  std::string file_name;
 
   /*! Aproximate line where this type is declared */
-  unsigned int line;
+  uint32_t line;
 
 };
 

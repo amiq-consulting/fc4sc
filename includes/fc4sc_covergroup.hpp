@@ -111,12 +111,8 @@ protected:
     return cvp_strings[cvp];
   }
 
-public:
- 
-  covergroup() = default;
-
-  /*! Destructor */
-  virtual ~covergroup() { fc4sc::global::register_delete(this); }
+  /*! Disabled */
+  covergroup() = delete;
   /*! Disabled */
   virtual covergroup &operator=(const covergroup &other) = delete;
   /*! Disabled */
@@ -126,9 +122,20 @@ public:
   // ! Disabled
   covergroup &operator=(covergroup &&other) = delete;
 
+  /*! Destructor */
+  virtual ~covergroup() { fc4sc::global::register_delete(this); }
+public:
+
   virtual void sample() {
-    for (auto& cvp : this->cvps)
-      cvp->sample();
+    for (auto& cvp : this->cvps) {
+	// TODO: throw error for illegal sample
+//      try {
+	  cvp->sample();
+//      }
+//      catch(const std::string &e) {
+//
+//      }
+    }
   }
 
   /*!
@@ -252,7 +259,7 @@ public:
    * \brief print instance in UCIS XML format
    * \param stream Where to print
    */
-  virtual void to_xml(ostream &stream) const
+  virtual void to_xml(std::ostream &stream) const
   {
 
     stream << option << "\n";

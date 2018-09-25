@@ -277,7 +277,7 @@ public:
    * \brief print instance in UCIS XML format
    * \param stream Where to print
    */
-  void to_xml(ostream &stream) const
+  void to_xml(std::ostream &stream) const
   {
 
     stream << "<ucis:cross ";

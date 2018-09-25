@@ -99,7 +99,7 @@ protected:
     cvp.bins.push_back(*this);
   }
 
-  void print_xml_header(ostream &stream, const string &type) const
+  void print_xml_header(std::ostream &stream, const std::string &type) const
   {
     stream << "<ucis:coverpointBin name=\"" << name << "\" \n";
     stream << "type=\""
@@ -212,7 +212,7 @@ public:
    * \brief Writes the bin in UCIS XML format
    * \param stream Where to print it
    */
-  virtual void to_xml(ostream &stream) const
+  virtual void to_xml(std::ostream &stream) const
   {
 
     print_xml_header(stream, "default");
@@ -288,7 +288,7 @@ public:
     return 0;
   }
 
-  virtual void to_xml(ostream &stream) const
+  virtual void to_xml(std::ostream &stream) const
   {
 
     this->print_xml_header(stream, "illegal");
@@ -389,7 +389,7 @@ public:
 
 
 
-  virtual void print_range(ostream &stream, T start, T stop, T step, uint index) const
+  virtual void print_range(std::ostream &stream, T start, T stop, T step, uint index) const
   {
 
     if (index != 0)
@@ -407,7 +407,7 @@ public:
            << ">\n";
   }
 
-  virtual void to_xml(ostream &stream) const
+  virtual void to_xml(std::ostream &stream) const
   {
     T start = this->intervals[0].first;
     T stop = this->intervals[0].second;

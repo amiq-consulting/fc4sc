@@ -42,9 +42,6 @@
 
 #include "fc4sc_bin.hpp"
 
-using std::tuple;
-using std::get;
-
 namespace fc4sc
 {
 
@@ -299,9 +296,9 @@ public:
     // set strings here
     auto strings = n->get_strings(this);
 
-    this->sample_point = static_cast<T *>(get<0>(strings));
-    this->name = get<1>(strings);
-    this->sample_expression_str = get<2>(strings);
+    this->sample_point = static_cast<T *>(std::get<0>(strings));
+    this->name = std::get<1>(strings);
+    this->sample_expression_str = std::get<2>(strings);
   }
 
   template <typename... Args>
@@ -440,7 +437,7 @@ public:
    * \brief print instance in UCIS XML format
    * \param stream Where to print
    */
-  virtual void to_xml(ostream &stream) const
+  virtual void to_xml(std::ostream &stream) const
   {
     stream << "<ucis:coverpoint ";
     stream << "name=\"" << this->name << "\" ";
