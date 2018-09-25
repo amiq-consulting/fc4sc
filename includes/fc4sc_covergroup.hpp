@@ -55,17 +55,23 @@ class covergroup : public cvg_base
 {
 protected:
   /*
-   * This function registeres a coverpoint instance inside this covergroup.
+   * This function registers a coverpoint instance inside this covergroup.
+   * It receives as arguments a pointer to the coverpoint to be registered,
+   * the coverpoint name, the sample expression lambda function and string,
+   * and finally, the sample condition lambda function and string.
+   * Finally, it returns a coverpoint constructed with the given arguments.
+   * The purpose of this function is to be used for coverpoint instantiation
+   * via the COVERPOINT macro and should not be explicitly used!
    */
   template<typename T>
   coverpoint <T> register_cvp(coverpoint <T>* cvp, std::string&& cvp_name,
     std::function<T()>&& sample_expr, std::string&& sample_expr_str,
     std::function<bool()>&& sample_cond, std::string&& sample_cond_str) {
 
-    // Runtime check to make sure that all the coverpoints are different
-    // normally, this should be the case, but if the user decides to use
-    // this function itself instead of using the provided macro, we make
-    // sure that the damadge is minimal at least.
+    // Runtime check to make sure that all the coverpoints are different.
+    // Normally, this should be the case, but if for whatever reason this
+    // function is used multiple times with pointers to the the same coverpoint,
+    // we make sure that the damage is minimal at least.
     if (std::find(std::begin(cvps), std::end(cvps), cvp) != std::end(cvps))
       throw ("Coverpoint already registered in this covergroup!");
 

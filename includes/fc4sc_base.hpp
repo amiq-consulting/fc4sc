@@ -67,11 +67,11 @@ using std::vector;
 
 /*
  * \brief Macro that creates a lambda function which returns the expression given
- * as argument when called. A pointer to the enclosing class will be bound in order
- * for the expression to allow local class variables.
+ * as argument when called. A pointer to the enclosing class will be bound in the
+ * lambda capture so that local class variables can be used in the lambda body.
  * The purpose of this macro is to use in the instantiation of coverpoints inside
- * covergroups and will server as a generator for lambda expressions to be used
- * when sampling (sample expression and iff conidtions).
+ * covergroups and will serve as a generator for lambda expressions to be used
+ * when sampling (sample expression and sample conditions).
  */
 #define CREATE_WRAP_F(expr, type) [this]() -> type { return (expr); }
 
