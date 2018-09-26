@@ -34,7 +34,7 @@ using fc4sc::reunion;
 using fc4sc::intersection;
 
 template <typename T>
-void print_arr(vector<pair<T,T>> x) {
+void print_arr(std::vector<fc4sc::interval_t<T>> x) {
   for (auto it: x)
     cerr << "[" << it.first << "," << it.second << "] ";
   cerr << "\n";

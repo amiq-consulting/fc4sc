@@ -35,6 +35,7 @@
 
 #include <iostream>
 #include <string>
+#include <exception>
 #include <algorithm>
 #include <tuple>
 #include <vector>
@@ -216,10 +217,6 @@ public:
  */
 class cvp_base : public api_base
 {
-protected:
-  /*! Name of the enclosing covergroup */
-  string p_name;
-
 public:
   uint last_bin_index_hit;
   uint last_sample_success;
@@ -270,6 +267,43 @@ public:
 
 };
 
+class illegal_bin_sample_exception : public std::exception {
+private:
+  std::string strconcat(const std::string& last) const { return last; }
+  template <typename... Args>
+  std::string strconcat(const std::string& head, Args... args) const {
+    return head + strconcat(args...);
+  }
+
+  std::string value_hit;
+  std::string bin_name;
+  std::string cvp_name;
+  std::string cvg_name;
+  std::string message;
+
+  void update_message() {
+    message = strconcat("Illegal sample in [", cvg_name, "/", cvp_name, "/", bin_name, "] on value [", value_hit, "]!");
+  }
+public:
+  void update_bin_info(const std::string& bin_name, const std::string& value) {
+    this->bin_name = bin_name;
+    this->value_hit = value;
+    update_message();
+  }
+  void update_cvp_info(const std::string& cvp_name) {
+    this->cvp_name = cvp_name;
+    update_message();
+  }
+  void update_cvg_info(const std::string& cvg_name) {
+    this->cvg_name = cvg_name;
+    update_message();
+  }
+
+
+  const char * what () const throw () {
+    return message.c_str();
+  }
+};
 } // namespace fc4sc
 
 #endif /* FC4SC_BASE_HPP */

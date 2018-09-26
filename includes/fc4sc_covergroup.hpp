@@ -128,13 +128,17 @@ public:
 
   virtual void sample() {
     for (auto& cvp : this->cvps) {
-	// TODO: throw error for illegal sample
-//      try {
+      try {
 	  cvp->sample();
-//      }
-//      catch(const std::string &e) {
-//
-//      }
+      }
+      catch(illegal_bin_sample_exception &e) {
+        e.update_cvg_info(this->name);
+        std::cerr << e.what() << std::endl;
+#ifndef FC4SC_NO_THROW // By default the simulation will stop
+        std::cerr << "Stopping simulation\n";
+	throw(e);
+#endif
+      }
     }
   }
 

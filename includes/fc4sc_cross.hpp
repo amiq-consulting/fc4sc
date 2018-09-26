@@ -144,15 +144,12 @@ public:
   template <typename... Restrictions>
   cross(cvg_base *n, coverpoint<Args> *... args, Restrictions... binsofs) : cross(binsofs...) 
   {
-    // Store parent covergroup
     n->cvps.push_back(this);
-    this->p_name = n->name;
 
     total_bins = get_size(args...);
     cvps_vec = std::vector<cvp_base*>{args...};
 
     std::reverse(cvps_vec.begin(), cvps_vec.end());
-
   };
 
   

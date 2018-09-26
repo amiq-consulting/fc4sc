@@ -38,6 +38,7 @@
 #ifndef FC4SC_HPP
 #define FC4SC_HPP
 
+#include "fc4sc_base.hpp"
 #include "fc4sc_intervals.hpp"
 #include "fc4sc_options.hpp"
 #include "fc4sc_binsof.hpp"

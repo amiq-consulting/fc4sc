@@ -37,7 +37,7 @@
 #include <algorithm>
 #include <tuple>
 #include <vector>
-#include <stack>
+#include <sstream>
 #include <memory>  // unique_ptr
 
 #include "fc4sc_base.hpp"
@@ -138,12 +138,10 @@ public:
   template <typename... Args>
   bin(interval_t<T> interval, Args... args) : bin(args...)
   {
-    if (interval.first > interval.second)
-    {
+    if (interval.first > interval.second) {
       std::swap(interval.first, interval.second);
     }
-
-    intervals.insert(intervals.begin(), interval);
+    intervals.push_back(interval);
   }
 
   /*!
@@ -276,13 +274,14 @@ public:
    */
   uint64_t sample(const T &val)
   {
-
     for (uint i = 0; i < this->intervals.size(); ++i)
-      if (val >= this->intervals[i].first && val <= this->intervals[i].second)
-      {
+      if (val >= this->intervals[i].first && val <= this->intervals[i].second) {
+        // construct exception to be thrown
+        std::stringstream ss; ss << val;
+        illegal_bin_sample_exception e;
+        e.update_bin_info(this->name, ss.str());
         this->hits++;
-        throw string("illegal sample");
-        return 1;
+        throw e;
       }
 
     return 0;

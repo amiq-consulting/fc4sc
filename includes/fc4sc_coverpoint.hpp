@@ -129,31 +129,25 @@ private:
    *  Takes a value and searches it in the owned bins
    */
   void sample(const T &cvp_val)  {
-
 #ifdef FC4SC_DISABLE_SAMPLING
     return;
 #endif
-
     if (!colect) return;
 
+    // 1) Search if the value is in the ignore bins
     for (auto& ig_bin_it : ignore_bins)
-      if(ig_bin_it.sample(cvp_val)) {
+      if (ig_bin_it.sample(cvp_val)) {
         this->last_sample_success = 0;
         return;
       }
 
-    // First search in illegal bins
+    // 1) Search if the value is in the illegal bins
     for (auto& il_bin_hit : illegal_bins) {
       try { il_bin_hit.sample(cvp_val);  }
-      catch (const string &e)
-      {
-        // Illegal bin hit -> show error
-        cerr << "Illegal sample in [" << p_name << "/" << name << "/" << il_bin_hit.name << "] on value [" << cvp_val << "]!\n";
+      catch (illegal_bin_sample_exception &e) {
         this->last_sample_success = 0;
-#ifndef FC4SC_NO_THROW // By default the simulation will stop
-        cerr << "Stopping simulation\n";
-        throw(e);
-#endif
+        e.update_cvp_info(this->name);
+        throw e;
       }
     }
 
@@ -288,10 +282,10 @@ public:
   template <typename... Args>
   coverpoint(cvg_base *n, Args... args) : coverpoint(args...)
   {
+    // Because the way that delegated constructors work, the coverpoint arguments
+    // processed in the reverse order, resulting in a reversed vector of bins.
     reverse(bins.begin(), bins.end());
-   
     n->cvps.push_back(this);
-    p_name = n->name;
 
     // set strings here
     auto strings = n->get_strings(this);
