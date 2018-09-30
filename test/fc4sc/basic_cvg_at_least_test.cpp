@@ -39,7 +39,7 @@ public:
   }
   
   coverpoint<int> cvp1 = coverpoint<int> (this,
-    bin<int>(1)
+    bin<int>("1", 1)
   );
 
 };

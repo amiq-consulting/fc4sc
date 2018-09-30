@@ -47,7 +47,7 @@ public:
   }
 
   coverpoint<int> cvp_weight_0 = coverpoint<int> (this, 
-    bin<int>(1)
+    bin<int>("1", 1)
   );
 
   coverpoint<int> cvp_empty = coverpoint<int> (this);

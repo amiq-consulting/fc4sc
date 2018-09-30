@@ -33,9 +33,9 @@ public:
   int value = 0;
 
   COVERPOINT(int, never_sample_cvp, value, false) {
-    illegal_bin<int>(3),
-    ignore_bin<int>(2),
-    bin<int>(4)
+    illegal_bin<int>("illegal_3", 3),
+    ignore_bin<int>("ignore_2", 2),
+    bin<int>("four", 4)
   };
 
   COVERPOINT(int, odd_values_cvp, value, value % 2 == 1) {

@@ -41,12 +41,12 @@ public:
   }
 
   COVERPOINT(int, factorial_cvp, factorial(value)) {
-    bin<int>(6),  // value == 3
-    bin<int>(24)  // value == 4
+    bin<int>("fact(3)", 6),  // value == 3
+    bin<int>("fact(4)", 24)  // value == 4
   };
 
   COVERPOINT(int, square_value_cvp, value * value) {
-    bin<int>(16) // value == 4
+    bin<int>("4^2", 16) // value == 4
   };
 };
 

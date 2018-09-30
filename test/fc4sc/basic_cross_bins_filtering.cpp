@@ -17,12 +17,12 @@ void sample(const int& x, const int& y) {
 	covergroup::sample();
 }
 coverpoint<int> cvp1 = coverpoint<int> (this, "cvp1",
-		bin<int>(1),
-		bin<int>(2)
+		bin<int>("one", 1),
+		bin<int>("two", 2)
 );
 coverpoint<int> cvp2 = coverpoint<int> (this, "cvp2",
-		bin<int>(1),
-		bin<int>(2)
+		bin<int>("one", 1),
+		bin<int>("two", 2)
 );
 cross<int,int> cross1 = cross<int,int> (this, "cross1", &cvp1, &cvp2);
 
