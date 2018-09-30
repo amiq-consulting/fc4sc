@@ -35,27 +35,11 @@
 
 #include <iostream>
 #include <algorithm>
-#include <tuple>
 #include <vector>
 #include <sstream>
 #include <memory>  // unique_ptr
 
 #include "fc4sc_base.hpp"
-
-using std::to_string;
-
-using std::cerr;
-using std::cout;
-
-using std::pair;
-using std::string;
-
-using std::lower_bound;
-using std::sort;
-using std::vector;
-
-using std::tuple;
-using std::tuple_cat;
 
 namespace fc4sc
 {
@@ -70,16 +54,16 @@ template <typename T>
 class bin;
 
 template <typename T>
-static vector<interval_t<T>> reunion(const bin<T>& lhs, const bin<T>& rhs);
+static std::vector<interval_t<T>> reunion(const bin<T>& lhs, const bin<T>& rhs);
 
 template <typename T>
-static vector<interval_t<T>> reunion(const bin<T>& lhs, const vector<interval_t<T>>& rhs);
+static std::vector<interval_t<T>> reunion(const bin<T>& lhs, const std::vector<interval_t<T>>& rhs);
 
 template <typename T>
-static vector<interval_t<T>> intersection(const bin<T>& lhs, const bin<T>& rhs);
+static std::vector<interval_t<T>> intersection(const bin<T>& lhs, const bin<T>& rhs);
 
 template <typename T>
-static vector<interval_t<T>> intersection(const bin<T>& lhs, const vector<interval_t<T>>& rhs);
+static std::vector<interval_t<T>> intersection(const bin<T>& lhs, const std::vector<interval_t<T>>& rhs);
 
 /*!
  * \brief Defines a class for default bins
@@ -88,7 +72,6 @@ static vector<interval_t<T>> intersection(const bin<T>& lhs, const vector<interv
 template <class T>
 class bin : public bin_base
 {
-
   static_assert(std::is_arithmetic<T>::value, "Type must be numeric!");
     
   friend binsof<T>;
@@ -109,10 +92,10 @@ protected:
   uint64_t hits = 0;
 
   /*! Storage for the values. All are converted to intervals */
-  vector<interval_t<T>> intervals;
+  std::vector<interval_t<T>> intervals;
 
   /*! Name of the bin */
-  string name;
+  std::string name;
 
 private:
   // These constructors are private, making the only public constructor be
@@ -134,7 +117,7 @@ private:
    *  \param args Rest of arguments
    */
   template <typename... Args>
-  bin(pair<T, T> interval, Args... args) : bin(args...) {
+  bin(interval_t<T> interval, Args... args) : bin(args...) {
     if (interval.first > interval.second) {
       std::swap(interval.first, interval.second);
     }
@@ -154,7 +137,7 @@ public:
    *  \param args Rest of arguments
    */
   template <typename... Args>
-  bin(const string &bin_name, Args... args) : bin(args...) {
+  bin(const std::string &bin_name, Args... args) : bin(args...) {
     this->name = bin_name;
   }
 
@@ -236,11 +219,11 @@ public:
     stream << "</ucis:coverpointBin>\n";
   }
 
-  friend vector<interval_t<T>> reunion<T>(const bin<T>& lhs, const vector<interval_t<T>>& rhs);
-  friend vector<interval_t<T>> intersection<T>(const bin<T>& lhs, const vector<interval_t<T>>& rhs);
+  friend std::vector<interval_t<T>> reunion<T>(const bin<T>& lhs, const std::vector<interval_t<T>>& rhs);
+  friend std::vector<interval_t<T>> intersection<T>(const bin<T>& lhs, const std::vector<interval_t<T>>& rhs);
 
-  friend vector<interval_t<T>> reunion<T>(const bin<T>& lhs, const bin<T>& rhs);
-  friend vector<interval_t<T>> intersection<T>(const bin<T>& lhs, const bin<T>& rhs);
+  friend std::vector<interval_t<T>> reunion<T>(const bin<T>& lhs, const bin<T>& rhs);
+  friend std::vector<interval_t<T>> intersection<T>(const bin<T>& lhs, const bin<T>& rhs);
 
 };
 
@@ -346,12 +329,12 @@ protected:
     cvp.bin_arrays.push_back(*this);
   }
 public:
-  vector<uint64_t> split_hits;
+  std::vector<uint64_t> split_hits;
   uint64_t count;
 
-  explicit bin_array(const string &name, int count, interval_t<T> interval) : bin<T>(name, interval), count(count)
+  explicit bin_array(const std::string &name, int count, interval_t<T> interval) :
+      bin<T>(name, interval), count(count)
   {
-
     auto intv = this->intervals[0];
     uint64_t interval_length = (intv.second - intv.first) + 1;
 

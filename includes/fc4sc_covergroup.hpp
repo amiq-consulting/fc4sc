@@ -40,11 +40,6 @@
 #include <typeinfo>
 #include <tuple>
 
-using std::unordered_map;
-
-using std::tuple;
-using std::make_tuple;
-
 namespace fc4sc
 {
 /*!
@@ -76,6 +71,7 @@ protected:
       throw ("Coverpoint already registered in this covergroup!");
 
     coverpoint<T> cvp_structure;
+    cvp_structure.has_sample_expression = true;
     cvp_structure.sample_expression = sample_expr;
     cvp_structure.sample_condition = sample_cond;
     cvp_structure.sample_expression_str = sample_expr_str;
@@ -85,7 +81,7 @@ protected:
     return cvp_structure;
   }
 
-  unordered_map<cvp_base *, cvp_metadata_t> cvp_strings;
+  std::unordered_map<cvp_base *, cvp_metadata_t> cvp_strings;
 
    /*!
    * \brief Registers an instance and some info to \link fc4sc::global_access \endlink
@@ -94,7 +90,7 @@ protected:
    * \param line  Line of declaration
    * \param inst_name Name of the instance
    */
-  covergroup(const char *type_name, const char *file_name = "", int line = 0, const string &inst_name = "")
+  covergroup(const char *type_name, const char *file_name = "", int line = 0, const std::string &inst_name = "")
   {
     this->type_name = type_name;
     this->file_name = file_name;
@@ -102,7 +98,7 @@ protected:
     fc4sc::global::register_new(this, type_name, file_name, line, inst_name);
   }
 
-  uint32_t set_strings(cvp_base *cvp, void *sample_point, const string& cvp_name, const string& expr_name) {
+  uint32_t set_strings(cvp_base *cvp, void *sample_point, const std::string& cvp_name, const std::string& expr_name) {
     cvp_strings[cvp] = cvp_metadata_t(sample_point, cvp_name, expr_name);
     return 0;
   }
@@ -235,7 +231,7 @@ public:
    *  \brief Changes the instances name
    *  \param new_name New associated name
    */
-  void set_inst_name(const string &new_name)
+  void set_inst_name(const std::string &new_name)
   {
     name = new_name;
   }

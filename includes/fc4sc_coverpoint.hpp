@@ -101,13 +101,13 @@ private:
   T* sample_point = nullptr;
 
   /*! bins contained in this coverpoint */
-  vector<bin<T>> bins;
+  std::vector<bin<T>> bins;
   /*! bin_arrays contained in this coverpoint */
-  vector<bin_array<T>> bin_arrays;
+  std::vector<bin_array<T>> bin_arrays;
   /*! Illegal bins contained in this coverpoint */
-  vector<illegal_bin<T>> illegal_bins;
+  std::vector<illegal_bin<T>> illegal_bins;
   /*! Ignore bins contained in this coverpoint */
-  vector<ignore_bin<T>> ignore_bins;
+  std::vector<ignore_bin<T>> ignore_bins;
 
   /*! Sampling switch */
   bool colect = true;
@@ -178,55 +178,9 @@ private:
     misses++;
   }
 
-public:
-  /*
-   * Initialization constructor. It is used as a "hack" designed to extract the
-   * sampling expression and condition from the enclosing covergroup.
-   */
-  coverpoint(const coverpoint<T>& rh) {
-    // TODO: add mechanism to make sure that this is only called by the use of COVERGROUP macro;
-    this->has_sample_expression = true;
-    this->sample_expression = rh.sample_expression;
-    this->sample_condition = rh.sample_condition;
-    this->sample_expression_str = rh.sample_expression_str;
-    this->sample_condition_str = rh.sample_condition_str;
-    this->bins = rh.bins;
-    this->bin_arrays = rh.bin_arrays;
-    this->ignore_bins = rh.ignore_bins;
-    this->illegal_bins = rh.illegal_bins;
-    this->name = rh.name;
-  }
-
-  coverpoint<T>& operator=(coverpoint<T>&& rh) {
-    // TODO: add mechanism to make sure that this is only called by the use of COVERGROUP macro;
-    this->bins = std::move(rh.bins);
-    this->bin_arrays = std::move(rh.bin_arrays);
-    this->ignore_bins = std::move(rh.ignore_bins);
-    this->illegal_bins = std::move(rh.illegal_bins);
-    return *this;
-  }
-
   /*! Default constructor */
-  coverpoint()
-  {
-    name = "";
-    colect = true;
-    misses = 0;
-  }
+  coverpoint() = default;
 
-  ~coverpoint() = default;
-
-  /*!
-   * \brief Initializer list constructor that receives a list of bin (of any types,
-   * even mixed) and registers all the bins in this coverpoint.
-   */
-  coverpoint(std::initializer_list<bin_wrapper<T>> list) {
-    for (auto &bin_w : list) {
-      bin_w.get_bin()->add_to_cvp(*this);
-    }
-  }
-
-  // TODO: remove all constructors after completing the implementation of the sample expression?
   /*!
    *  \brief Constructor that registers a new default bin
    */
@@ -280,6 +234,45 @@ public:
    *  \brief Constructor that takes the parent covergroup.
    */
   template <typename... Args>
+  coverpoint(const std::string& cvp_name, Args... args) : coverpoint(args...)
+  {
+    this->name = cvp_name;
+  }
+
+public:
+  // Initialization constructor. Needed for the use of COVERGROUP macro;
+  coverpoint(const coverpoint<T>& rh) = default;
+  /*
+   * Move assignment operator. Needed for the use of COVERGROUP macro. This should not be
+   * "manually" used!
+   */
+  coverpoint<T>& operator=(coverpoint<T>&& rh) {
+    /*
+     * It is very important that the only fields moved from the right hand are
+     * the bins. This is a needed assumption which makes the COVERPOINT macro
+     * syntax work!
+     */
+    this->bins = std::move(rh.bins);
+    this->bin_arrays = std::move(rh.bin_arrays);
+    this->ignore_bins = std::move(rh.ignore_bins);
+    this->illegal_bins = std::move(rh.illegal_bins);
+    return *this;
+  }
+
+  ~coverpoint() = default;
+
+  /*!
+   * \brief Initializer list constructor that receives a list of bin (of any types,
+   * even mixed) and registers all the bins in this coverpoint.
+   */
+  coverpoint(std::initializer_list<bin_wrapper<T>> list) {
+    for (auto &bin_w : list) {
+      bin_w.get_bin()->add_to_cvp(*this);
+    }
+  }
+
+
+  template <typename... Args>
   coverpoint(cvg_base *n, Args... args) : coverpoint(args...)
   {
     // Because the way that delegated constructors work, the coverpoint arguments
@@ -293,12 +286,6 @@ public:
     this->sample_point = static_cast<T *>(std::get<0>(strings));
     this->name = std::get<1>(strings);
     this->sample_expression_str = std::get<2>(strings);
-  }
-
-  template <typename... Args>
-  coverpoint(const string& cvp_name , Args... args)   : coverpoint(args...)
-  {
-    this->name = cvp_name;
   }
 
   /*!
@@ -343,7 +330,7 @@ public:
 
     uint64_t extra_bins = 0;
     for (auto &bin_array : bin_arrays) {
-      vector<uint64_t> hits = bin_array.split_hits;
+	std::vector<uint64_t> hits = bin_array.split_hits;
 
       for (uint64_t hitcount : hits) 
         res += (hitcount >= option.at_least);
@@ -386,7 +373,7 @@ public:
 
     uint64_t extra_bins = 0;
     for (auto &bin_array : bin_arrays) {
-      vector<uint64_t> hits = bin_array.split_hits;
+	std::vector<uint64_t> hits = bin_array.split_hits;
 
       for (uint64_t hitcount : hits) 
         res += (hitcount >= option.at_least);
@@ -406,7 +393,7 @@ public:
    *  \brief Changes the instances name
    *  \param new_name New associated name
    */
-  void set_inst_name(const string &new_name)
+  void set_inst_name(const std::string &new_name)
   {
     this->name = new_name;
   }

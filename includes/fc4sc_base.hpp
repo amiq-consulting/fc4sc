@@ -71,16 +71,18 @@
 #define CREATE_WRAP_F(expr, type) [this]() -> type { return (expr); }
 
 #define GET_CVP_MACRO(_1,_2,_3,_4, NAME,...) NAME
-#define COVERPOINT(...) GET_CVP_MACRO(__VA_ARGS__, CVP_4, CVP_3)(__VA_ARGS__)
 
 /*
- * TODO: find a way to get rid of explicit type instantiation?
- * Using decltype is problematic because the macro will not work
- * if the user passes the sample_expr enclosed in parentheses, as
- * decltype((sample_expr)) will evaluate to a reference of type
- * decltype(sample_expr). We need a way to strip down
- * all parentheses enclosing the sample_expr argument.
+ * Macro used to define and automatically register a coverpoint inside a covergroup.
+ * The macro accepts 3 or 4 arguments in the following order:
+ * 1) Type: used for the values of the bins declared in the coveroint
+ * 2) Name: the name of the coverpoint
+ * 3) Sample Expression: the expression that will be used for sampling this coverpoint
+ * whenever the covergroup is sampled (the type has to be the same as Type argument)
+ * 4) Sample Condition: a condition that has to be true in order for this coverpoint
+ * to be sampled when the covergroup is sampled (the type has to be bool)
  */
+#define COVERPOINT(...) GET_CVP_MACRO(__VA_ARGS__, CVP_4, CVP_3)(__VA_ARGS__)
 
 // COVERPOINT macro for 3 arguments (no sample condition)
 #define CVP_3(type, cvp_name, sample_expr) \
@@ -105,7 +107,7 @@ namespace fc4sc
 template<typename T>
 using interval_t = std::pair<T, T>;
 
-using cvp_metadata_t = std::tuple<void*, string, string>;
+using cvp_metadata_t = std::tuple<void*, std::string, std::string>;
 
 typedef enum fc4sc_format {
   ucis_xml = 1
@@ -181,7 +183,7 @@ public:
    * \brief Changes the name of the instance
    * \param new_name The new name of the instance
    */
-  virtual void set_inst_name(const string &new_name)
+  virtual void set_inst_name(const std::string &new_name)
   {
     this->name = new_name;
   }
@@ -228,7 +230,7 @@ public:
   cvp_type_option type_option;
 
   /*! Number of samples not found in any bin */
-  uint64_t misses;
+  uint64_t misses = 0;
 
   /*! Destructor */
   virtual ~cvp_base(){};

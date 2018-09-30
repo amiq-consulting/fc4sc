@@ -40,7 +40,7 @@ class binsof {
 
 public:
 
-	vector<interval_t<T>> allowed_bins;
+	std::vector<interval_t<T>> allowed_bins;
 
 	binsof() {};
 	

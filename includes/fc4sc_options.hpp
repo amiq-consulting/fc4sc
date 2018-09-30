@@ -36,8 +36,6 @@
 #include <string>
 #include <ostream>
 
-using std::string;
-
 /*!
  * \class cvg_option fc_options.hpp
  * \brief Covergroup option declaration
@@ -51,7 +49,7 @@ struct cvg_option
   uint goal;
 
   /*! Comment for this coverage */
-  string comment;
+  std::string comment;
 
   /*! Minimum of hits for each bin */
   uint at_least;
@@ -119,7 +117,7 @@ struct cvp_option
   uint goal;
 
   /*! Comment for this coverage */
-  string comment;
+  std::string comment;
 
   /*! Minimum of hits for each bin */
   uint at_least;
@@ -173,7 +171,7 @@ struct cross_option // cross option declaration
   uint goal;
 
   /*! Comment for this coverage */
-  string comment;
+  std::string comment;
 
   /*! Minimum of hits for each bin */
   uint at_least;
@@ -222,7 +220,7 @@ struct cvg_type_option // covergroup type_option declaration
   uint goal;
 
   /*! Comment for this coverage */
-  string comment;
+  std::string comment;
 
   /*! !UNIPLEMENTED! Computes coverage cumulatively across all instances */
   bool merge_instances;
@@ -251,7 +249,7 @@ struct cvp_type_option // coverpoint and cross type_option declaration
   uint goal;
 
   /*! Comment for this coverage */
-  string comment;
+  std::string comment;
 
   /*!
    * \brief Sets all values to default

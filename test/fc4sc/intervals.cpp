@@ -27,6 +27,7 @@
 
 TEST(intervals, reunion) {
 
+  using std::vector;
   bin<int> a("1", interval(1,5), interval(7,7), interval(8,20) );
   bin<int> b("2", interval(2,3), interval(5,9) );
   bin<int> c("3", interval(1,3), interval(3,6), interval(6,9) );

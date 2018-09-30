@@ -41,13 +41,6 @@
 #include "fc4sc_coverpoint.hpp"
 #include "fc4sc_binsof.hpp"
 
-using std::get;
-using std::make_tuple;
-using std::map;
-using std::tuple;
-using std::tuple_size;
-using std::vector;
-
 namespace fc4sc
 {
 
@@ -99,11 +92,11 @@ class cross : public cvp_base
    *  \returns True if each value is in its corresponding coverpoint
    */
   template <size_t k, typename Head, typename... Tail>
-  bool check(vector<vector<uint>> &found, Head h, Tail... t)
+  bool check(std::vector<std::vector<uint>> &found, Head h, Tail... t)
   {
 
     // See if the current value is in its coverpoint, and where
-    vector<uint> bin_indexes = (static_cast<coverpoint<Head> *>(cvps_vec[k - 1]))->get_bin_index(h);
+    std::vector<uint> bin_indexes = (static_cast<coverpoint<Head> *>(cvps_vec[k - 1]))->get_bin_index(h);
 
     // If atleast one bin has it
     bool found_in_cvp = bin_indexes.size() > 0;
@@ -124,17 +117,17 @@ class cross : public cvp_base
    * \brief End of recursion
    */
   template <size_t k>
-  bool check(vector<vector<uint>> &found)
+  bool check(std::vector<std::vector<uint>> &found)
   {
     return true;
   }
 
 public:
   /*! Hit cross bins storage */
-  map<vector<uint>, uint64_t> bins;
+  std::map<std::vector<uint>, uint64_t> bins;
 
   /*! Crossed coverpoints storage */
-  vector<cvp_base *> cvps_vec;
+  std::vector<cvp_base *> cvps_vec;
 
   /*!
    *  \brief Main constructor
@@ -155,11 +148,11 @@ public:
   
   template <typename... Restrictions, typename Select>
   cross(binsof<Select> binsof_inst,  Restrictions... binsofs) : cross (binsofs...) {
-    cerr << "consume binsof\n";
+    std::cerr << "consume binsof\n";
     static_cast<void>(binsof_inst);
   }
 
-  cross(cvg_base *n, const string& name, coverpoint<Args> *... args) : cross(n, args...){
+  cross(cvg_base *n, const std::string& name, coverpoint<Args> *... args) : cross(n, args...) {
     this->name = name;
   };
 
@@ -176,7 +169,7 @@ public:
    */
   virtual void sample() 
   {
-    vector <uint> hit_bins;
+    std::vector <uint> hit_bins;
     for (auto& cvp : cvps_vec) {
       if (cvp->last_sample_success) {
         hit_bins.push_back(cvp->last_bin_index_hit);
@@ -249,7 +242,7 @@ public:
    *  \brief Changes the instances name
    *  \param new_name New associated name
    */
-  void set_inst_name(const string &new_name)
+  void set_inst_name(const std::string &new_name)
   {
     name = new_name;
   };

@@ -69,7 +69,7 @@ class global
 
       std::string get_next_name()
       {
-        return type_name + "_" + to_string((unsigned long long)(++index));
+        return type_name + "_" + std::to_string((unsigned long long)(++index));
       }
 
       friend std::ostream &operator<<(std::ostream &stream, const metadata &inst)
@@ -86,7 +86,7 @@ class global
     };
 
     /*! Table keeping instances data grouped by type */
-    std::unordered_map<string, metadata> cv_data;
+    std::unordered_map<std::string, metadata> cv_data;
 
   public:
     /*!
@@ -96,14 +96,15 @@ class global
    * \param line  Line of declaration
    * \param inst_name Name of the instance
    */
-    void register_new(cvg_base *cvg, const std::string &type_name, const std::string &file_name, const int line,
+    void register_new(cvg_base *cvg,
+		      const std::string &type_name,
+		      const std::string &file_name,
+		      const int line,
                       const std::string &inst_name = "")
     {
-
       // New type registered
       if (cv_data.find(type_name) == cv_data.end())
       {
-
         // Store location info
         metadata temp;
 
@@ -341,10 +342,9 @@ class global
    * \param type Unmangled type name
    * \returns Double between 0 and 100
    */
-    double get_coverage(const string &type)
+    double get_coverage(const std::string &type)
     {
-
-      vector<cvg_base *> cvgs = cv_data[type].cvg_insts;
+      std::vector<cvg_base *> cvgs = cv_data[type].cvg_insts;
 
       double res = 0;
       double weights = 0;
@@ -378,10 +378,9 @@ class global
    * \returns Double between 0 and 100
    */
     // TODO merge hit_bins
-    double get_coverage(const string &type, int &hit_bins, int &total_bins)
+    double get_coverage(const std::string &type, int &hit_bins, int &total_bins)
     {
-
-      vector<cvg_base *> cvgs = cv_data[type].cvg_insts;
+      std::vector<cvg_base *> cvgs = cv_data[type].cvg_insts;
 
       double res = 0;
       double weights = 0;
@@ -444,8 +443,11 @@ public:
    * \param line  Line of declaration
    * \param inst_name Name of the instance
    */
-  static void register_new(cvg_base *cvg, const std::string &type_name, const std::string &file_name,
-                           const int line, const std::string &inst_name = "")
+  static void register_new(cvg_base *cvg,
+			   const std::string &type_name,
+			   const std::string &file_name,
+                           const int line,
+			   const std::string &inst_name = "")
   {
     main_controller *global = getter();
     global->register_new(cvg, type_name, file_name, line, inst_name);
@@ -504,8 +506,8 @@ public:
   static void coverage_save(const std::string &file_name = "", const fc4sc_format how = fc4sc_format::ucis_xml)
   {
     if (file_name.empty()) {
-      cerr << "FC4SC " << __FUNCTION__ << " was passed empty string\n";
-      cerr << "\tReturning\n";  
+      std::cerr << "FC4SC " << __FUNCTION__ << " was passed empty string\n";
+      std::cerr << "\tReturning\n";
       return;
     }
 
