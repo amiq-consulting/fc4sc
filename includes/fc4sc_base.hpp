@@ -183,8 +183,7 @@ public:
    * \brief Changes the name of the instance
    * \param new_name The new name of the instance
    */
-  virtual void set_inst_name(const std::string &new_name)
-  {
+  virtual void set_inst_name(const std::string &new_name) {
     this->name = new_name;
   }
 

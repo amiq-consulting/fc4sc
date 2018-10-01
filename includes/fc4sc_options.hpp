@@ -222,7 +222,7 @@ struct cvg_type_option // covergroup type_option declaration
   /*! Comment for this coverage */
   std::string comment;
 
-  /*! !UNIPLEMENTED! Computes coverage cumulatively across all instances */
+  /*! TODO: !UNIPLEMENTED! Computes coverage cumulatively across all instances */
   bool merge_instances;
 
   /*!

@@ -228,15 +228,6 @@ public:
   }
 
   /*!
-   *  \brief Changes the instances name
-   *  \param new_name New associated name
-   */
-  void set_inst_name(const std::string &new_name)
-  {
-    name = new_name;
-  }
-
-  /*!
    * \brief Enables sampling on all coverpoints/crosses
    */
   void start()

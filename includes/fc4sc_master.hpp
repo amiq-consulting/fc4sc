@@ -90,16 +90,16 @@ class global
 
   public:
     /*!
-   * \brief Adds a new instance to the global table
-   * \param type_name Type of covergroup stringified
-   * \param file_name File of declaration
-   * \param line  Line of declaration
-   * \param inst_name Name of the instance
+     * \brief Adds a new instance to the global table
+     * \param type_name Type of covergroup stringified
+     * \param file_name File of declaration
+     * \param line  Line of declaration
+     * \param inst_name Name of the instance
    */
     void register_new(cvg_base *cvg,
-		      const std::string &type_name,
-		      const std::string &file_name,
-		      const int line,
+                      const std::string &type_name,
+                      const std::string &file_name,
+                      const int line,
                       const std::string &inst_name = "")
     {
       // New type registered
