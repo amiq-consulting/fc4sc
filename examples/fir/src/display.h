@@ -36,6 +36,11 @@
 
   Description of Modification: Included the FC4SC library, created and
   instantiated a covergroup for collecting output coverage.
+
+  	  	  	  	   Date: 2018-Sep-24
+
+  Description of Modification: Updated the instantiation of the coverpoints
+  to use the new COVERPOINT macro.
             
  *****************************************************************************/
 
@@ -62,8 +67,8 @@ SC_MODULE(display) {
   
   class output_coverage : public covergroup {
 
-    int SAMPLE_POINT(value, data_ready_cvp);
-    int SAMPLE_POINT(valid, output_valid_cvp);
+    int value = 0;
+    int valid = 0;
 
     public:
 
@@ -78,17 +83,17 @@ SC_MODULE(display) {
         covergroup::sample();
       }
 
-      coverpoint<int> data_ready_cvp = coverpoint<int> (this,
+      COVERPOINT(int, data_ready_cvp, value){
           bin<int>("zero", 0),
           illegal_bin<int>("illegal_zero", 0),
           bin<int>("positive", interval(1,INT_MAX - 1)),
           bin<int>("negative", interval(-1,INT_MIN + 1))
-      );
+      };
 
-      coverpoint<int> output_valid_cvp = coverpoint<int> (this,
+      COVERPOINT(int, output_valid_cvp, valid) {
           bin<int>("valid", 1),
           bin<int>("invalid", 0)
-      );
+      };
 
 
     };

@@ -41,7 +41,7 @@ public:
 
   // coverpoint with 10 one value bins
   coverpoint<int> cvp1 = coverpoint<int> (this,
-	  bin<int>("1",1),
+      bin<int>("1",1),
       bin<int>("2",2),
       bin<int>("4",4),
       bin<int>("8",8),
@@ -52,22 +52,22 @@ public:
       bin<int>("256",256),
       bin<int>("512",512),
       bin<int>("1024",1024)
- 	);
+  );
 
   // Same bins duplicated
   coverpoint<int> cvp2 = coverpoint<int> (this,
      bin<int>("1",1),
-	 bin<int>("2",2),
-	 bin<int>("4",4),
-	 bin<int>("8",8),
-	 bin<int>("16",16),
-	 bin<int>("32",32),
-	 bin<int>("64",64),
-	 bin<int>("128",128),
-	 bin<int>("256",256),
-	 bin<int>("512",512),
-	 bin<int>("1024",1024)
-   );
+     bin<int>("2",2),
+     bin<int>("4",4),
+     bin<int>("8",8),
+     bin<int>("16",16),
+     bin<int>("32",32),
+     bin<int>("64",64),
+     bin<int>("128",128),
+     bin<int>("256",256),
+     bin<int>("512",512),
+     bin<int>("1024",1024)
+  );
 };
 
 TEST(random, 1) {

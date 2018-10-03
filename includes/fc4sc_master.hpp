@@ -35,14 +35,9 @@
 
 #include <unordered_map>
 #include <fstream>
-#include <algorithm>
+#include <stdint.h>
 
 #include "fc4sc_base.hpp"
-
-using std::find;
-using std::ofstream;
-using std::to_string;
-using std::unordered_map;
 
 namespace fc4sc
 {
@@ -53,41 +48,37 @@ namespace fc4sc
  */
 class global
 {
-
   /*!
- * \class main_controller fc_master.hpp
- * \brief Keeps evidence of all the covergroup instances and types
- */
+   * \class main_controller fc_master.hpp
+   * \brief Keeps evidence of all the covergroup instances and types
+   */
   class main_controller
   {
-
     // Inner struct for holding data on each type
     struct metadata
     {
-
-      string type_name;
-      string file_name;
-      unsigned int line;
-      unsigned int index = 0;
-
       cvg_type_option type_option;
+      std::string type_name;
+      std::string file_name;
+      uint32_t line;
+      uint32_t index = 0;
 
-      vector<cvg_base *> cvg_insts;
-      vector<string> cvg_insts_name;
 
-      string get_next_name()
+      std::vector<cvg_base *> cvg_insts;
+      std::vector<std::string> cvg_insts_name;
+
+      std::string get_next_name()
       {
-        return type_name + "_" + to_string((unsigned long long)(++index));
+        return type_name + "_" + std::to_string((unsigned long long)(++index));
       }
 
-      friend ostream &operator<<(ostream &stream, const metadata &inst)
+      friend std::ostream &operator<<(std::ostream &stream, const metadata &inst)
       {
-
         stream << "type_name: [" << inst.type_name << "]\n";
         stream << "file_name: [" << inst.file_name << "]\n";
         stream << "line     : [" << inst.line << "]\n";
 
-        for (uint i = 0; i < inst.cvg_insts_name.size(); ++i)
+        for (size_t i = 0; i < inst.cvg_insts_name.size(); ++i)
           stream << "\tinst_name : [" << inst.cvg_insts[i] << "][" << inst.cvg_insts_name[i] << "]\n";
 
         return stream;
@@ -95,24 +86,25 @@ class global
     };
 
     /*! Table keeping instances data grouped by type */
-    unordered_map<string, metadata> cv_data;
+    std::unordered_map<std::string, metadata> cv_data;
 
   public:
     /*!
-   * \brief Adds a new instance to the global table
-   * \param type_name Type of covergroup stringified
-   * \param file_name File of declaration
-   * \param line  Line of declaration
-   * \param inst_name Name of the instance
+     * \brief Adds a new instance to the global table
+     * \param type_name Type of covergroup stringified
+     * \param file_name File of declaration
+     * \param line  Line of declaration
+     * \param inst_name Name of the instance
    */
-    void register_new(cvg_base *cvg, const string &type_name, const string &file_name, const int line,
-                      const string &inst_name = "")
+    void register_new(cvg_base *cvg,
+                      const std::string &type_name,
+                      const std::string &file_name,
+                      const int line,
+                      const std::string &inst_name = "")
     {
-
       // New type registered
       if (cv_data.find(type_name) == cv_data.end())
       {
-
         // Store location info
         metadata temp;
 
@@ -143,8 +135,8 @@ class global
     void register_delete(cvg_base *cvg)
     {
       // cvg->type_name
-      vector<cvg_base *> &cvgs = cv_data[cvg->type_name].cvg_insts;
-      vector<string> &names = cv_data[cvg->type_name].cvg_insts_name;
+      std::vector<cvg_base *> &cvgs = cv_data[cvg->type_name].cvg_insts;
+      std::vector<std::string> &names = cv_data[cvg->type_name].cvg_insts_name;
 
       auto it = find(cvgs.begin(), cvgs.end(), cvg);
       int index = it - cvgs.begin();
@@ -160,10 +152,10 @@ class global
     }
 
     /*!
-   * \brief Function called to print an UCIS XML with all the data
-   * \param stream Where to print
-   */
-    ostream &print_data_xml(std::ostream &stream)
+     * \brief Function called to print an UCIS XML with all the data
+     * \param stream Where to print
+     */
+    std::ostream &print_data_xml(std::ostream &stream)
     {
 
       // Header
@@ -293,7 +285,7 @@ class global
         stream << ">\n";
 
         // Print each instance
-        for (uint i = 0; i < type_it.second.cvg_insts.size(); ++i)
+        for (size_t i = 0; i < type_it.second.cvg_insts.size(); ++i)
         {
 
           stream << "<ucis:cgInstance ";
@@ -331,23 +323,16 @@ class global
    */
     double get_coverage()
     {
-
       double res = 0;
       double weights = 0;
 
-      for (auto &types : cv_data)
-      {
-
+      for (auto &types : cv_data) {
         res += get_coverage(types.first) * types.second.type_option.weight;
-
         weights += types.second.type_option.weight;
       }
 
-      if (cv_data.size() == 0)
-        return 100;
-
-      if (weights == 0)
-        return 0;
+      if (cv_data.size() == 0) return 100;
+      if (weights == 0)        return 0;
 
       return res / weights;
     };
@@ -357,10 +342,9 @@ class global
    * \param type Unmangled type name
    * \returns Double between 0 and 100
    */
-    double get_coverage(const string &type)
+    double get_coverage(const std::string &type)
     {
-
-      vector<cvg_base *> cvgs = cv_data[type].cvg_insts;
+      std::vector<cvg_base *> cvgs = cv_data[type].cvg_insts;
 
       double res = 0;
       double weights = 0;
@@ -394,10 +378,9 @@ class global
    * \returns Double between 0 and 100
    */
     // TODO merge hit_bins
-    double get_coverage(const string &type, int &hit_bins, int &total_bins)
+    double get_coverage(const std::string &type, int &hit_bins, int &total_bins)
     {
-
-      vector<cvg_base *> cvgs = cv_data[type].cvg_insts;
+      std::vector<cvg_base *> cvgs = cv_data[type].cvg_insts;
 
       double res = 0;
       double weights = 0;
@@ -430,7 +413,7 @@ class global
       return (real >= cv_data[type].type_option.goal) ? 100 : real;
     };
 
-    cvg_type_option &type_option(const string &type)
+    cvg_type_option &type_option(const std::string &type)
     {
       return cv_data[type].type_option;
     }
@@ -460,8 +443,11 @@ public:
    * \param line  Line of declaration
    * \param inst_name Name of the instance
    */
-  static void register_new(cvg_base *cvg, const string &type_name, const string &file_name,
-                           const int line, const string &inst_name = "")
+  static void register_new(cvg_base *cvg,
+			   const std::string &type_name,
+			   const std::string &file_name,
+                           const int line,
+			   const std::string &inst_name = "")
   {
     main_controller *global = getter();
     global->register_new(cvg, type_name, file_name, line, inst_name);
@@ -473,7 +459,7 @@ public:
     global->register_delete(cvg);
   }
 
-  static cvg_type_option &type_option(const string &type)
+  static cvg_type_option &type_option(const std::string &type)
   {
     main_controller *global = getter();
     return global->type_option(type);
@@ -494,7 +480,7 @@ public:
    * \param type Unmangled type name
    * \returns Double between 0 and 100
    */
-  static double get_coverage(const string &type)
+  static double get_coverage(const std::string &type)
   {
     main_controller *global = getter();
     return global->get_coverage(type);
@@ -507,7 +493,7 @@ public:
    * \param total_bins Total number of bins across instances of same type
    * \returns Double between 0 and 100
    */
-  static double get_coverage(const string &type, int &hit_bins, int &total_bins)
+  static double get_coverage(const std::string &type, int &hit_bins, int &total_bins)
   {
     main_controller *global = getter();
     return global->get_coverage(type, hit_bins, total_bins);
@@ -517,28 +503,24 @@ public:
    * \brief Prints data to the given file name
    * \param file_name Where to print. Returns if empty
    */
-  static void coverage_save(const string &file_name = "", const fc4sc_format how= fc4sc_format::ucis_xml)
+  static void coverage_save(const std::string &file_name = "", const fc4sc_format how = fc4sc_format::ucis_xml)
   {
-
     if (file_name.empty()) {
-      cerr << "FC4SC " << __FUNCTION__ << " was passed empty string\n";
-      cerr << "\tReturning\n";  
+      std::cerr << "FC4SC " << __FUNCTION__ << " was passed empty string\n";
+      std::cerr << "\tReturning\n";
       return;
     }
 
     main_controller *global = getter();
-
     switch(how) {
       case fc4sc_format::ucis_xml: {
-        ofstream f(file_name);
+        std::ofstream f(file_name);
         global->print_data_xml(f);
         break;
       }
       default :
         break;
     }
-
-    
   }
 
 };

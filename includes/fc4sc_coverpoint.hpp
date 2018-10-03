@@ -36,12 +36,11 @@
 #include <type_traits>
 #include <list>
 #include <unordered_map>
+#include <functional>
 #include <tuple>
+#include <algorithm> // std::find
 
 #include "fc4sc_bin.hpp"
-
-using std::tuple;
-using std::get;
 
 namespace fc4sc
 {
@@ -57,72 +56,104 @@ class cross;
  * \brief Defines a class for coverpoints
  * \tparam T Type of bins that this coverpoint is holding
  */
-template <class T>
-class coverpoint : public cvp_base
-{
-  static_assert(std::is_arithmetic<T>::value, "Type must be numeric!");
 
+template <class T>
+class coverpoint;
+
+class covergroup;
+
+template <class T>
+class coverpoint final : public cvp_base
+{
+private:
+  // static check to make sure that the coverpoint is templated by a numeric type
+  static_assert(std::is_arithmetic<T>::value, "Type must be numeric!");
+  /*
+   * The covergroup class needs access to private members of the coverpoint in order to
+   * set the sample condition, expression and name.
+   * This id done in function
+   */
+  friend class covergroup;
+  // friend functions that can insert into the bin vectors -> add_to_cvp(coverpoint<T>&)
+  friend class bin<T>;
+  friend class bin_array<T>;
+  friend class ignore_bin<T>;
+  friend class illegal_bin<T>;
+
+  bool has_sample_expression = false;
+  /*!
+   * String-ified sample expression. It can be used for reporting.
+   * When the string is empty, no sample expression is registered.
+   */
+  std::string sample_expression_str;
+  /*! Expression used to sample the data */
+  std::function<T()> sample_expression;
+
+  /*!
+   * String-ified sample condition. It can be used for reporting.
+   * When the string is empty, no sample condition is registered.
+   */
+  std::string sample_condition_str;
+  /*! Condition based on which the sampling takes place or not */
+  std::function<bool()> sample_condition;
+
+  // pointer sample variable (assigned via SAMPLE_POINT macro)
   T* sample_point = nullptr;
 
-  /*! Default bins declared in this coverpoint */
-  vector<bin_array<T>> bin_arrays;
-
-  /*! Illegal bins declared in this coverpoint */
-  vector<illegal_bin<T>> illegal_bins;
-
-  /*! Ignore bins declared in this coverpoint */
-  vector<ignore_bin<T>> ignore_bins;
+  /*! bins contained in this coverpoint */
+  std::vector<bin<T>> bins;
+  /*! bin_arrays contained in this coverpoint */
+  std::vector<bin_array<T>> bin_arrays;
+  /*! Illegal bins contained in this coverpoint */
+  std::vector<illegal_bin<T>> illegal_bins;
+  /*! Ignore bins contained in this coverpoint */
+  std::vector<ignore_bin<T>> ignore_bins;
 
   /*! Sampling switch */
-  bool colect = true;
+  bool collect = true;
 
+  bool has_sample_condition() { return !sample_condition_str.empty(); }
 
-    /*!
+  //
+  coverpoint<T>& operator=(coverpoint<T>& rh) = delete;
+  /*
+   * kept for backwards compatibility with previous instantiation method:
+   * coverpoint<int> cvp = coverpoint<int> (...);
+   */
+  // coverpoint(coverpoint<T>&& rh) = delete;
+
+  /*!
    *  \brief Sampling function at coverpoint level
    *  \param cvp_val Value to be sampled for this coverpoint
    *
    *  Takes a value and searches it in the owned bins
    */
-  void sample(const T &cvp_val)
-  {
-
+  void sample(const T &cvp_val)  {
 #ifdef FC4SC_DISABLE_SAMPLING
     return;
 #endif
+    if (!collect) return;
 
-    if (!colect)
-      return;
-
+    // 1) Search if the value is in the ignore bins
     for (auto& ig_bin_it : ignore_bins)
-      if(ig_bin_it.sample(cvp_val)) {
+      if (ig_bin_it.sample(cvp_val)) {
         this->last_sample_success = 0;
         return;
       }
 
-    // First search in illegal bins
-    for (auto& il_bin_hit : illegal_bins)
-    {
-
-      try
-      {
-        il_bin_hit.sample(cvp_val);
-      }
-      catch (const string &e)
-      {
-        // Illegal bin hit -> show error
-        cerr << "Illegal sample in [" << p_name << "/" << name << "/" << il_bin_hit.name << "] on value [" << cvp_val << "]!\n";
+    // 1) Search if the value is in the illegal bins
+    for (auto& il_bin_hit : illegal_bins) {
+      try { il_bin_hit.sample(cvp_val);  }
+      catch (illegal_bin_sample_exception &e) {
         this->last_sample_success = 0;
-#ifndef FC4SC_NO_THROW // By default the simulation will stop
-        cerr << "Stopping simulation\n";
-        throw(e);
-#endif
-
+        e.update_cvp_info(this->name);
+        throw e;
       }
     }
 
     // Sample bin arrays first => higher hit chance
     uint64_t start = bins.size();
-    for (uint i = 0; i < bin_arrays.size(); ++i) {
+    for (size_t i = 0; i < bin_arrays.size(); ++i) {
 
       uint64_t hit = bin_arrays[i].sample(cvp_val);
       if (hit) {
@@ -135,9 +166,7 @@ class coverpoint : public cvp_base
     }
 
     // Sample default bins
-    for (uint i = 0; i < bins.size(); ++i)
-    // for (auto& bin : bins)
-    {
+    for (size_t i = 0; i < bins.size(); ++i) {
       if (bins[i].sample(cvp_val)) {
         this->last_bin_index_hit = i;
         this->last_sample_success = 1;
@@ -147,25 +176,10 @@ class coverpoint : public cvp_base
   
     this->last_sample_success = 0;
     misses++;
-
   }
-
-public:
-
-  /*! Default bins declared in this coverpoint */
-  vector<bin<T>> bins;
 
   /*! Default constructor */
-  coverpoint()
-  {
-    name = "";
-    colect = true;
-    misses = 0;
-  }
-
-  ~coverpoint()
-  {
-  }
+  coverpoint() = default;
 
   /*!
    *  \brief Constructor that registers a new default bin
@@ -173,7 +187,6 @@ public:
   template <typename... Args>
   coverpoint(bin<T> n, Args... args) : coverpoint(args...)
   {
-
     if (!n.is_empty())
     {
       reverse(n.intervals.begin(), n.intervals.end());
@@ -210,7 +223,6 @@ public:
   template <typename... Args>
   coverpoint(ignore_bin<T> n, Args... args) : coverpoint(args...)
   {
-
     if (!n.is_empty())
     {
       reverse(n.intervals.begin(), n.intervals.end());
@@ -218,49 +230,83 @@ public:
     }
   }
 
-
   /*!
    *  \brief Constructor that takes the parent covergroup.
    */
   template <typename... Args>
+  coverpoint(const std::string& cvp_name, Args... args) : coverpoint(args...)
+  {
+    this->name = cvp_name;
+  }
+
+public:
+  // Initialization constructor. Needed for the use of COVERGROUP macro;
+  coverpoint(const coverpoint<T>& rh) = default;
+  /*
+   * Move assignment operator. Needed for the use of COVERGROUP macro. This should not be
+   * "manually" used!
+   */
+  coverpoint<T>& operator=(coverpoint<T>&& rh) {
+    /*
+     * It is very important that the only fields moved from the right hand are
+     * the bins. This is a needed assumption which makes the COVERPOINT macro
+     * syntax work!
+     */
+    this->bins = std::move(rh.bins);
+    this->bin_arrays = std::move(rh.bin_arrays);
+    this->ignore_bins = std::move(rh.ignore_bins);
+    this->illegal_bins = std::move(rh.illegal_bins);
+    return *this;
+  }
+
+  ~coverpoint() = default;
+
+  /*!
+   * \brief Initializer list constructor that receives a list of bin (of any types,
+   * even mixed) and registers all the bins in this coverpoint.
+   */
+  coverpoint(std::initializer_list<bin_wrapper<T>> list) {
+    for (auto &bin_w : list) {
+      bin_w.get_bin()->add_to_cvp(*this);
+    }
+  }
+
+
+  template <typename... Args>
   coverpoint(cvg_base *n, Args... args) : coverpoint(args...)
   {
+    // Because the way that delegated constructors work, the coverpoint arguments
+    // processed in the reverse order, resulting in a reversed vector of bins.
     reverse(bins.begin(), bins.end());
-   
     n->cvps.push_back(this);
-    p_name = n->name;
 
     // set strings here
     auto strings = n->get_strings(this);
 
-    this->sample_point = static_cast<T *>(get<0>(strings));
-    this->name = get<1>(strings);
-    this->expr_str = get<2>(strings);
-
-  }
-
-  template <typename... Args>
-  coverpoint(const string& cvp_name , Args... args)   : coverpoint(args...)
-  {
-    this->name = cvp_name;
+    this->sample_point = static_cast<T *>(std::get<0>(strings));
+    this->name = std::get<1>(strings);
+    this->sample_expression_str = std::get<2>(strings);
   }
 
   /*!
    *  Retrieves the number of default bins
    */
   uint64_t size() {
-
     uint64_t total_size = 0;
-
     for (auto arr : bin_arrays)
       total_size += arr.size();
-
     return total_size + bins.size();
   }
 
   void sample() 
   {
-    this->sample(*sample_point);
+    if (has_sample_expression) {
+      if (!has_sample_condition() || sample_condition())
+         this->sample(sample_expression());
+    }
+    else {
+      this->sample(*sample_point);
+    }
   }
 
   /*!
@@ -269,10 +315,9 @@ public:
    */
   double get_inst_coverage() const 
   {
-
     double res = 0;
 
-    if (bins.size() == 0)
+    if (bins.empty() && bin_arrays.empty()) // no bins or bin arrays defined
     {
       if (option.weight == 0)
         return 100;
@@ -285,7 +330,7 @@ public:
 
     uint64_t extra_bins = 0;
     for (auto &bin_array : bin_arrays) {
-      vector<uint64_t> hits = bin_array.split_hits;
+	std::vector<uint64_t> hits = bin_array.split_hits;
 
       for (uint64_t hitcount : hits) 
         res += (hitcount >= option.at_least);
@@ -328,7 +373,7 @@ public:
 
     uint64_t extra_bins = 0;
     for (auto &bin_array : bin_arrays) {
-      vector<uint64_t> hits = bin_array.split_hits;
+	std::vector<uint64_t> hits = bin_array.split_hits;
 
       for (uint64_t hitcount : hits) 
         res += (hitcount >= option.at_least);
@@ -348,7 +393,7 @@ public:
    *  \brief Changes the instances name
    *  \param new_name New associated name
    */
-  void set_inst_name(const string &new_name)
+  void set_inst_name(const std::string &new_name)
   {
     this->name = new_name;
   }
@@ -358,7 +403,7 @@ public:
    */
   void start()
   {
-    colect = true;
+    collect = true;
   }
 
   /*!
@@ -366,21 +411,21 @@ public:
    */
   void stop()
   {
-    colect = false;
+    collect = false;
   }
 
   /*!
    * \brief print instance in UCIS XML format
    * \param stream Where to print
    */
-  virtual void to_xml(ostream &stream) const
+  virtual void to_xml(std::ostream &stream) const
   {
     stream << "<ucis:coverpoint ";
     stream << "name=\"" << this->name << "\" ";
     stream << "key=\""
            << "KEY"
            << "\" ";
-    stream << "exprString=\"" << this->expr_str << "\"";
+    stream << "exprString=\"" << this->sample_expression_str << "\"";
     stream << ">\n";
 
     stream << option << "\n";

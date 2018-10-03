@@ -41,14 +41,6 @@
 #include "fc4sc_coverpoint.hpp"
 #include "fc4sc_binsof.hpp"
 
-using std::get;
-using std::make_tuple;
-using std::map;
-using std::pair;
-using std::tuple;
-using std::tuple_size;
-using std::vector;
-
 namespace fc4sc
 {
 
@@ -61,7 +53,7 @@ class cross : public cvp_base
 {
 
   /*! Sampling switch */
-  bool colect = true;
+  bool collect = true;
 
   /*! Total number of bins in this cross */
   uint64_t total_bins = 0;
@@ -100,11 +92,11 @@ class cross : public cvp_base
    *  \returns True if each value is in its corresponding coverpoint
    */
   template <size_t k, typename Head, typename... Tail>
-  bool check(vector<vector<uint>> &found, Head h, Tail... t)
+  bool check(std::vector<std::vector<size_t>> &found, Head h, Tail... t)
   {
 
     // See if the current value is in its coverpoint, and where
-    vector<uint> bin_indexes = (static_cast<coverpoint<Head> *>(cvps_vec[k - 1]))->get_bin_index(h);
+    std::vector<size_t> bin_indexes = (static_cast<coverpoint<Head> *>(cvps_vec[k - 1]))->get_bin_index(h);
 
     // If atleast one bin has it
     bool found_in_cvp = bin_indexes.size() > 0;
@@ -125,17 +117,17 @@ class cross : public cvp_base
    * \brief End of recursion
    */
   template <size_t k>
-  bool check(vector<vector<uint>> &found)
+  bool check(std::vector<std::vector<size_t>> &found)
   {
     return true;
   }
 
 public:
   /*! Hit cross bins storage */
-  map<vector<uint>, uint64_t> bins;
+  std::map<std::vector<size_t>, uint64_t> bins;
 
   /*! Crossed coverpoints storage */
-  vector<cvp_base *> cvps_vec;
+  std::vector<cvp_base *> cvps_vec;
 
   /*!
    *  \brief Main constructor
@@ -145,25 +137,22 @@ public:
   template <typename... Restrictions>
   cross(cvg_base *n, coverpoint<Args> *... args, Restrictions... binsofs) : cross(binsofs...) 
   {
-    // Store parent covergroup
     n->cvps.push_back(this);
-    this->p_name = n->name;
 
     total_bins = get_size(args...);
     cvps_vec = std::vector<cvp_base*>{args...};
 
     std::reverse(cvps_vec.begin(), cvps_vec.end());
-
   };
 
   
   template <typename... Restrictions, typename Select>
   cross(binsof<Select> binsof_inst,  Restrictions... binsofs) : cross (binsofs...) {
-    cerr << "consume binsof\n";
+    std::cerr << "consume binsof\n";
     static_cast<void>(binsof_inst);
   }
 
-  cross(cvg_base *n, const string& name, coverpoint<Args> *... args) : cross(n, args...){
+  cross(cvg_base *n, const std::string& name, coverpoint<Args> *... args) : cross(n, args...) {
     this->name = name;
   };
 
@@ -171,7 +160,7 @@ public:
   /*!
    *  \brief Default constructor
    */
-  cross(){};
+  cross(){}
 
   /*!
    *  \brief Sampling function at cross level
@@ -180,23 +169,17 @@ public:
    */
   virtual void sample() 
   {
-
-    vector <uint> hit_bins;
-
-    // for (auto& cvp : cvps_vec) {
-    for (int i=0; i < cvps_vec.size(); ++i) {
-      if (cvps_vec[i]->last_sample_success)
-
-        hit_bins.push_back(cvps_vec[i]->last_bin_index_hit);
-
+    std::vector <size_t> hit_bins;
+    for (auto& cvp : cvps_vec) {
+      if (cvp->last_sample_success) {
+        hit_bins.push_back(cvp->last_bin_index_hit);
+      }
       else {
         misses++;
         return;
       }
     }
-
     bins[hit_bins]++;
-
   }
 
   /*!
@@ -259,7 +242,7 @@ public:
    *  \brief Changes the instances name
    *  \param new_name New associated name
    */
-  void set_inst_name(const string &new_name)
+  void set_inst_name(const std::string &new_name)
   {
     name = new_name;
   };
@@ -269,7 +252,7 @@ public:
    */
   void start()
   {
-    colect = true;
+    collect = true;
   };
 
   /*!
@@ -277,14 +260,14 @@ public:
    */
   void stop()
   {
-    colect = false;
+    collect = false;
   };
 
   /*!
    * \brief print instance in UCIS XML format
    * \param stream Where to print
    */
-  void to_xml(ostream &stream) const
+  void to_xml(std::ostream &stream) const
   {
 
     stream << "<ucis:cross ";

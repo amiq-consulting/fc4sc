@@ -35,26 +35,11 @@
 
 #include <iostream>
 #include <algorithm>
-#include <tuple>
 #include <vector>
-#include <stack>
+#include <sstream>
+#include <memory>  // unique_ptr
 
 #include "fc4sc_base.hpp"
-
-using std::to_string;
-
-using std::cerr;
-using std::cout;
-
-using std::pair;
-using std::string;
-
-using std::lower_bound;
-using std::sort;
-using std::vector;
-
-using std::tuple;
-using std::tuple_cat;
 
 namespace fc4sc
 {
@@ -69,17 +54,16 @@ template <typename T>
 class bin;
 
 template <typename T>
-static vector<pair<T,T>> reunion(const bin<T>& lhs, const bin<T>& rhs);
+static std::vector<interval_t<T>> reunion(const bin<T>& lhs, const bin<T>& rhs);
 
 template <typename T>
-static vector<pair<T,T>> reunion(const bin<T>& lhs, const vector<pair<T,T>>& rhs);
+static std::vector<interval_t<T>> reunion(const bin<T>& lhs, const std::vector<interval_t<T>>& rhs);
 
 template <typename T>
-static vector<pair<T,T>> intersection(const bin<T>& lhs, const bin<T>& rhs);
+static std::vector<interval_t<T>> intersection(const bin<T>& lhs, const bin<T>& rhs);
 
 template <typename T>
-static vector<pair<T,T>> intersection(const bin<T>& lhs, const vector<pair<T,T>>& rhs);
-
+static std::vector<interval_t<T>> intersection(const bin<T>& lhs, const std::vector<interval_t<T>>& rhs);
 
 /*!
  * \brief Defines a class for default bins
@@ -89,11 +73,13 @@ template <class T>
 class bin : public bin_base
 {
   static_assert(std::is_arithmetic<T>::value, "Type must be numeric!");
+    
   friend binsof<T>;
   friend coverpoint<T>;
 
 protected:
-  void print_xml_header(ostream &stream, const string &type) const
+
+  void print_xml_header(std::ostream &stream, const std::string &type) const
   {
     stream << "<ucis:coverpointBin name=\"" << name << "\" \n";
     stream << "type=\""
@@ -102,14 +88,14 @@ protected:
            << "alias=\"" << get_hitcount() << "\""
            << ">\n";
   }
-  /*! Stores the number of hits registered in this bin */
+
   uint64_t hits = 0;
 
   /*! Storage for the values. All are converted to intervals */
-  vector<pair<T, T>> intervals;
+  std::vector<interval_t<T>> intervals;
 
   /*! Name of the bin */
-  string name;
+  std::string name;
 
 private:
   // These constructors are private, making the only public constructor be
@@ -131,7 +117,7 @@ private:
    *  \param args Rest of arguments
    */
   template <typename... Args>
-  bin(pair<T, T> interval, Args... args) : bin(args...) {
+  bin(interval_t<T> interval, Args... args) : bin(args...) {
     if (interval.first > interval.second) {
       std::swap(interval.first, interval.second);
     }
@@ -139,23 +125,29 @@ private:
   }
 
 public:
+  /* Virtual function used to register this bin inside a coverpoint */
+  virtual void add_to_cvp(coverpoint<T> &cvp) const
+  {
+    cvp.bins.push_back(*this);
+  }
+
   /*!
    *  \brief Takes the bin name
    *  \param bin_name Name of the bin
    *  \param args Rest of arguments
    */
   template <typename... Args>
-  bin(const string &bin_name, Args... args) : bin(args...) {
+  bin(const std::string &bin_name, Args... args) : bin(args...) {
     this->name = bin_name;
   }
 
   /*!
    *  \brief Default constructor
    */
-  bin() : name("empty_bin") {};
+  bin() : name("empty_bin") {}
 
   /*! Destructor */
-  virtual ~bin(){};
+  virtual ~bin(){}
 
   uint64_t get_hitcount() const
   {
@@ -186,7 +178,7 @@ public:
    */
   bool contains(const T &val) const
   {
-    for (uint i = 0; i < intervals.size(); ++i)
+    for (size_t i = 0; i < intervals.size(); ++i)
       if (intervals[i].first <= val && intervals[i].second >= val)
         return true;
 
@@ -202,13 +194,13 @@ public:
    * \brief Writes the bin in UCIS XML format
    * \param stream Where to print it
    */
-  virtual void to_xml(ostream &stream) const
+  virtual void to_xml(std::ostream &stream) const
   {
 
     print_xml_header(stream, "default");
 
     // Print each range. Coverpoint writes the header (name etc.)
-    for (uint i = 0; i < intervals.size(); ++i)
+    for (size_t i = 0; i < intervals.size(); ++i)
     {
       stream << "<ucis:range \n"
              << "from=\"" << intervals[i].first << "\" \n"
@@ -227,11 +219,11 @@ public:
     stream << "</ucis:coverpointBin>\n";
   }
 
-  friend vector<pair<T,T>> reunion<T>(const bin<T>& lhs, const vector<pair<T,T>>& rhs);
-  friend vector<pair<T,T>> intersection<T>(const bin<T>& lhs, const vector<pair<T,T>>& rhs);
+  friend std::vector<interval_t<T>> reunion<T>(const bin<T>& lhs, const std::vector<interval_t<T>>& rhs);
+  friend std::vector<interval_t<T>> intersection<T>(const bin<T>& lhs, const std::vector<interval_t<T>>& rhs);
 
-  friend vector<pair<T,T>> reunion<T>(const bin<T>& lhs, const bin<T>& rhs);
-  friend vector<pair<T,T>> intersection<T>(const bin<T>& lhs, const bin<T>& rhs);
+  friend std::vector<interval_t<T>> reunion<T>(const bin<T>& lhs, const bin<T>& rhs);
+  friend std::vector<interval_t<T>> intersection<T>(const bin<T>& lhs, const bin<T>& rhs);
 
 };
 
@@ -240,19 +232,24 @@ public:
  * \tparam T Type of values in this bin
  */
 template <class T>
-class illegal_bin : public bin<T>
+class illegal_bin final : public bin<T>
 {
-
   static_assert(std::is_arithmetic<T>::value, "Type must be numeric!");
+protected:
+  /* Virtual function used to register this bin inside a coverpoint */
+  virtual void add_to_cvp(coverpoint<T> &cvp) const override
+  {
+    cvp.illegal_bins.push_back(*this);
+  }
 
 public:
   /*!
    *  \brief Forward to parent constructor
    */
   template <typename... Args>
-  explicit illegal_bin(Args... args) : bin<T>::bin(args...){};
+  explicit illegal_bin(Args... args) : bin<T>::bin(args...){}
 
-  virtual ~illegal_bin(){};
+  virtual ~illegal_bin(){}
 
   /*!
    * \brief Same as bin::sample(const T& val)
@@ -261,25 +258,26 @@ public:
    */
   uint64_t sample(const T &val)
   {
-
-    for (uint i = 0; i < this->intervals.size(); ++i)
-      if (val >= this->intervals[i].first && val <= this->intervals[i].second)
-      {
+    for (size_t i = 0; i < this->intervals.size(); ++i)
+      if (val >= this->intervals[i].first && val <= this->intervals[i].second) {
+        // construct exception to be thrown
+        std::stringstream ss; ss << val;
+        illegal_bin_sample_exception e;
+        e.update_bin_info(this->name, ss.str());
         this->hits++;
-        throw string("illegal sample");
-        return 1;
+        throw e;
       }
 
     return 0;
   }
 
-  virtual void to_xml(ostream &stream) const
+  virtual void to_xml(std::ostream &stream) const
   {
 
     this->print_xml_header(stream, "illegal");
 
     // Print each range. Coverpoint writes the header (name etc.)
-    for (uint i = 0; i < this->intervals.size(); ++i)
+    for (size_t i = 0; i < this->intervals.size(); ++i)
     {
       stream << "<ucis:range \n"
              << "from=\"" << this->intervals[i].first << "\" \n"
@@ -300,33 +298,43 @@ public:
 };
 
 template <class T>
-class ignore_bin : public bin<T>
+class ignore_bin final : public bin<T>
 {
   static_assert(std::is_arithmetic<T>::value, "Type must be numeric!");
-
+protected:
+  /* Virtual function used to register this bin inside a coverpoint */
+  virtual void add_to_cvp(coverpoint<T> &cvp) const override
+  {
+    cvp.ignore_bins.push_back(*this);
+  }
 public:
   /*!
    *  \brief Forward to parent constructor
    */
   template <typename... Args>
-  explicit ignore_bin(Args... args) : bin<T>::bin(args...){};
+  explicit ignore_bin(Args... args) : bin<T>::bin(args...){}
 
-  virtual ~ignore_bin(){};
+  virtual ~ignore_bin(){}
 };
 
 
 template <class T>
-class bin_array : public bin<T>
+class bin_array final : public bin<T>
 {
   static_assert(std::is_arithmetic<T>::value, "Type must be numeric!");
-
+protected:
+  /* Virtual function used to register this bin inside a coverpoint */
+  virtual void add_to_cvp(coverpoint<T> &cvp) const override
+  {
+    cvp.bin_arrays.push_back(*this);
+  }
 public:
-  vector<uint64_t> split_hits;
+  std::vector<uint64_t> split_hits;
   uint64_t count;
 
-  explicit bin_array(const string &name, int count, pair<T, T> interval) : bin<T>(name, interval), count(count)
+  explicit bin_array(const std::string &name, int count, interval_t<T> interval) :
+      bin<T>(name, interval), count(count)
   {
-
     auto intv = this->intervals[0];
     uint64_t interval_length = (intv.second - intv.first) + 1;
 
@@ -348,11 +356,10 @@ public:
    */
   uint64_t sample(const T &val)
   {
-
     for (auto &interval : this->intervals)
       if (val >= interval.first && val <= interval.second)
       {
-        int bin_index = (val - interval.first) * count / (interval.second - interval.first);
+        uint64_t bin_index = (val - interval.first) * count / (interval.second - interval.first);
         if (bin_index == count)
           bin_index--;
 
@@ -365,7 +372,7 @@ public:
 
 
 
-  virtual void print_range(ostream &stream, T start, T stop, T step, uint index) const
+  virtual void print_range(std::ostream &stream, T start, T stop, T step, size_t index) const
   {
 
     if (index != 0)
@@ -383,14 +390,14 @@ public:
            << ">\n";
   }
 
-  virtual void to_xml(ostream &stream) const
+  virtual void to_xml(std::ostream &stream) const
   {
     T start = this->intervals[0].first;
     T stop = this->intervals[0].second;
 
     T step = (stop - start + 1) / count;
 
-    for (uint i = 0; i < count; ++i)
+    for (size_t i = 0; i < count; ++i)
     {
       stream << "<ucis:coverpointBin name=\"" << this->name << "_" << i+1 << "\" \n";
       stream << "type=\"" << "default" << "\" "
@@ -411,6 +418,39 @@ public:
       start = start + step;
     }
   }
+};
+
+/*
+ * Bin wrapper class used when constructing coverpoint via the COVERPOINT macro.
+ * Under the hood, the macro instantiates a coverpoint using std::initializer_list
+ * as argument. Because the std::initializer_list is limited to one type only,
+ * we cannot directly pass any type of bin we want to the coverpoint. In order to
+ * do that, we use this class which offers implicit cast from any type of bin and
+ * stores it internally as a dynamically allocated object.
+ */
+template <class T>
+class bin_wrapper final {
+private:
+  friend class coverpoint<T>;
+
+  std::unique_ptr<bin<T>> bin_h;
+  bin<T> *get_bin() const { return bin_h.get(); }
+
+
+public:
+  // Implicit cast to other bin types.
+  bin_wrapper(const bin<T>& r) : bin_h(new bin<T>(r)) {}
+  bin_wrapper(const bin_array<T>& r) : bin_h(new bin_array<T>(r)) {}
+  bin_wrapper(const illegal_bin<T>& r) : bin_h(new illegal_bin<T>(r)) {}
+  bin_wrapper(const ignore_bin<T>& r) : bin_h(new ignore_bin<T>(r)) {}
+
+  ~bin_wrapper() = default;
+
+  bin_wrapper() = delete;
+  bin_wrapper(bin_wrapper &) = delete;
+  bin_wrapper(bin_wrapper &&) = delete;
+  bin_wrapper& operator=(bin_wrapper &) = delete;
+  bin_wrapper& operator=(bin_wrapper &&) = delete;
 };
 
 } // namespace fc4sc

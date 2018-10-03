@@ -36,6 +36,11 @@
 
   Description of Modification: Included the FC4SC library, created and
   instantiated a covergroup for collecting shift data coverage.
+
+  	  	  	  	   Date: 2018-Sep-24
+
+  Description of Modification: Updated the instantiation of the coverpoints
+  to use the new COVERPOINT macro.
             
  *****************************************************************************/
 
@@ -65,7 +70,7 @@ SC_MODULE(fir) {
 
     public:
 
-    unsigned int SAMPLE_POINT(shifter, shift_cvp);
+    unsigned int shifter = 0;
     
     // Must call parent constructor somewhere register a new cvg
     CG_CONS(shift_coverage) { }
@@ -75,10 +80,10 @@ SC_MODULE(fir) {
       covergroup::sample();
     }
 
-    coverpoint<unsigned int> shift_cvp = coverpoint<unsigned int> (this,
+    COVERPOINT(unsigned int, shift_cvp, shifter) {
         bin<unsigned int>("all1", fc4sc::interval(0,255)),
         bin<unsigned int>("all2", fc4sc::interval(0,255))
-    );
+    };
 
   };
 

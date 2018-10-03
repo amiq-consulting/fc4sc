@@ -40,24 +40,48 @@
 #include <typeinfo>
 #include <tuple>
 
-using std::unordered_map;
-
-using std::tuple;
-using std::make_tuple;
-
 namespace fc4sc
 {
-
 /*!
  * \class covergroup covergroup.hpp
  * \brief Covergroup option declaration
  */
 class covergroup : public cvg_base
 {
-
-  unordered_map<cvp_base *, tuple<void*, string, string> > cvp_strings;
-
 protected:
+  /*
+   * This function registers a coverpoint instance inside this covergroup.
+   * It receives as arguments a pointer to the coverpoint to be registered,
+   * the coverpoint name, the sample expression lambda function and string,
+   * and finally, the sample condition lambda function and string.
+   * Finally, it returns a coverpoint constructed with the given arguments.
+   * The purpose of this function is to be used for coverpoint instantiation
+   * via the COVERPOINT macro and should not be explicitly used!
+   */
+  template<typename T>
+  coverpoint <T> register_cvp(coverpoint <T>* cvp, std::string&& cvp_name,
+    std::function<T()>&& sample_expr, std::string&& sample_expr_str,
+    std::function<bool()>&& sample_cond, std::string&& sample_cond_str) {
+
+    // Runtime check to make sure that all the coverpoints are different.
+    // Normally, this should be the case, but if for whatever reason this
+    // function is used multiple times with pointers to the the same coverpoint,
+    // we make sure that the damage is minimal at least.
+    if (std::find(std::begin(cvps), std::end(cvps), cvp) != std::end(cvps))
+      throw ("Coverpoint already registered in this covergroup!");
+
+    coverpoint<T> cvp_structure;
+    cvp_structure.has_sample_expression = true;
+    cvp_structure.sample_expression = sample_expr;
+    cvp_structure.sample_condition = sample_cond;
+    cvp_structure.sample_expression_str = sample_expr_str;
+    cvp_structure.sample_condition_str = sample_cond_str;
+    cvp_structure.name = cvp_name;
+    cvps.push_back(cvp);
+    return cvp_structure;
+  }
+
+  std::unordered_map<cvp_base *, cvp_metadata_t> cvp_strings;
 
    /*!
    * \brief Registers an instance and some info to \link fc4sc::global_access \endlink
@@ -66,52 +90,52 @@ protected:
    * \param line  Line of declaration
    * \param inst_name Name of the instance
    */
-  covergroup(const char *type_name, const char *file_name = "", int line = 0, const string &inst_name = "")
+  covergroup(const char *type_name, const char *file_name = "", int line = 0, const std::string &inst_name = "")
   {
     this->type_name = type_name;
     this->file_name = file_name;
     this->line = line;
-
     fc4sc::global::register_new(this, type_name, file_name, line, inst_name);
   }
 
-
-public:
-
-
-  bool set_strings(cvp_base *cvp, void *sample_point, const string& cvp_name, const string& expr_name) {
-
-    cvp_strings[cvp] = make_tuple(sample_point, cvp_name, expr_name);
-    return true;
+  uint32_t set_strings(cvp_base *cvp, void *sample_point, const std::string& cvp_name, const std::string& expr_name) {
+    cvp_strings[cvp] = cvp_metadata_t(sample_point, cvp_name, expr_name);
+    return 0;
   }
 
-  virtual tuple<void*, string, string> get_strings(cvp_base *cvp) {
+  virtual cvp_metadata_t get_strings(cvp_base *cvp) {
     return cvp_strings[cvp];
   }
- 
-  covergroup() = default;
 
-  /*! Destructor */
-  virtual ~covergroup()
-  {
-    fc4sc::global::register_delete(this);
-  }
-
+  /*! Disabled */
+  covergroup() = delete;
   /*! Disabled */
   virtual covergroup &operator=(const covergroup &other) = delete;
-
   /*! Disabled */
   covergroup(const covergroup &other) = delete;
-
-  // /*! Disabled */
+  /*! Disabled */
   covergroup(covergroup &&other) = delete;
-
   // ! Disabled
   covergroup &operator=(covergroup &&other) = delete;
 
-  void sample() {
-    for (auto& cvp : this->cvps) 
-      cvp->sample();
+  /*! Destructor */
+  virtual ~covergroup() { fc4sc::global::register_delete(this); }
+public:
+
+  virtual void sample() {
+    for (auto& cvp : this->cvps) {
+      try {
+	  cvp->sample();
+      }
+      catch(illegal_bin_sample_exception &e) {
+        e.update_cvg_info(this->name);
+        std::cerr << e.what() << std::endl;
+#ifndef FC4SC_NO_THROW // By default the simulation will stop
+        std::cerr << "Stopping simulation\n";
+	throw(e);
+#endif
+      }
+    }
   }
 
   /*!
@@ -120,7 +144,6 @@ public:
    */
   double get_inst_coverage()  const 
   {
-
     double res = 0;
     double weights = 0;
 
@@ -205,15 +228,6 @@ public:
   }
 
   /*!
-   *  \brief Changes the instances name
-   *  \param new_name New associated name
-   */
-  void set_inst_name(const string &new_name)
-  {
-    name = new_name;
-  }
-
-  /*!
    * \brief Enables sampling on all coverpoints/crosses
    */
   void start()
@@ -236,7 +250,7 @@ public:
    * \brief print instance in UCIS XML format
    * \param stream Where to print
    */
-  virtual void to_xml(ostream &stream) const
+  virtual void to_xml(std::ostream &stream) const
   {
 
     stream << option << "\n";

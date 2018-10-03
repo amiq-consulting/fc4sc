@@ -35,6 +35,11 @@
 
   Description of Modification: Included the FC4SC library, created and 
   instantiated a covergroup for collecting stimulus data coverage.
+
+  	  	  	  	   Date: 2018-Sep-24
+
+  Description of Modification: Updated the instantiation of the coverpoints
+  to use the new COVERPOINT macro.
             
  *****************************************************************************/
 
@@ -64,9 +69,9 @@ SC_MODULE(stimulus) {
 
   public:
 
-    int SAMPLE_POINT(value, values_cvp);
-    int SAMPLE_POINT(reset, reset_cvp);
-    int SAMPLE_POINT(valid, input_valid_cvp);
+    int value = 0;
+    int reset = 0;
+    int valid = 0;
 
     // Must call parent constructor somewhere register a new cvg
     CG_CONS(stimulus_coverage) {
@@ -82,21 +87,21 @@ SC_MODULE(stimulus) {
 
     }
 
-    coverpoint<int> values_cvp = coverpoint<int> (this, 
+    COVERPOINT(int, values_cvp, value) {
         bin<int>("zero", 0),
         bin_array<int>("lows", 3, interval(1,5)),
         bin<int>("max", 255)
-    );
+    };
 
-    coverpoint<int> reset_cvp = coverpoint<int> (this, 
+    COVERPOINT(int, reset_cvp, reset) {
         bin<int>("active", 1),
         bin<int>("disabled", 0)
-    );
+    };
 
-    coverpoint<int> input_valid_cvp = coverpoint<int> (this,
+    COVERPOINT(int, input_valid_cvp, valid) {
         bin<int>("valid", 1),
         bin<int>("invalid", 0)
-    );
+    };
 
     cross<int, int, int> reset_valid_cross = cross<int, int, int> (this, "reset valid",
         &reset_cvp,

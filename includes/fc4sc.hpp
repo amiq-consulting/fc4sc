@@ -38,6 +38,7 @@
 #ifndef FC4SC_HPP
 #define FC4SC_HPP
 
+#include "fc4sc_base.hpp"
 #include "fc4sc_intervals.hpp"
 #include "fc4sc_options.hpp"
 #include "fc4sc_binsof.hpp"
@@ -46,11 +47,11 @@
 #include "fc4sc_cross.hpp"
 #include "fc4sc_covergroup.hpp"
 
-
 using fc4sc::interval;
 using fc4sc::bin;
 using fc4sc::bin_array;
 using fc4sc::binsof;
+using fc4sc::ignore_bin;
 using fc4sc::illegal_bin;
 using fc4sc::coverpoint;
 using fc4sc::cross;

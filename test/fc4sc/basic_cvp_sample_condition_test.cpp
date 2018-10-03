@@ -19,40 +19,44 @@
    Original Authors: Teodor Vasilache and Dragos Dospinescu,
                      AMIQ Consulting s.r.l. (contributors@amiq.com)
 
-               Date: 2018-Feb-20
+               Date: 2018-Sep-24
 ******************************************************************************/
 
-#include <iostream>
-#include <array>
-
 #include "fc4sc.hpp"
-#include "test_type_1.hpp"
+#include "gtest/gtest.h"
 
-using std::array;
+class cvp_sample_cond_test : public covergroup {
+public:
+  CG_CONS(cvp_sample_cond_test) {
+  };
 
-using fc4sc::reunion;
-using fc4sc::intersection;
+  int value = 0;
 
-template <typename T>
-void print_arr(std::vector<fc4sc::interval_t<T>> x) {
-  for (auto it: x)
-    cerr << "[" << it.first << "," << it.second << "] ";
-  cerr << "\n";
-}
+  COVERPOINT(int, never_sample_cvp, value, false) {
+    illegal_bin<int>("illegal_3", 3),
+    ignore_bin<int>("ignore_2", 2),
+    bin<int>("four", 4)
+  };
 
-int main() {
+  COVERPOINT(int, odd_values_cvp, value, value % 2 == 1) {
+    bin_array<int>("1_to_10", 10, interval(1, 10))
+  };
+};
 
-  array<test_coverage, 1> test_array;    
+TEST(cvp_sample, sample_condition) {
+  cvp_sample_cond_test cvg;
 
-  test_array[0].sample(37,1,1);
-  test_array[0].sample(1,1,1);
-  test_array[0].sample(6,1,1);
-  test_array[0].sample(7,1,1);
-  test_array[0].sample(38,1,1);
-  test_array[0].sample(50,1,1);
-  test_array[0].sample(80,1,1);
-  test_array[0].sample(100,1,1);
+  EXPECT_EQ(cvg.get_inst_coverage(), 0);
 
-  fc4sc::global::coverage_save("results.xml");
+  for (auto i: {1,2,3,4,5,6,7,8,9,10}) {
+      EXPECT_EQ(cvg.odd_values_cvp.get_inst_coverage(), (i / 2) * 10);
+      EXPECT_EQ(cvg.never_sample_cvp.get_inst_coverage(), 0);
+      EXPECT_EQ(cvg.get_inst_coverage(), cvg.odd_values_cvp.get_inst_coverage() / 2);
+      cvg.value = i;
+      cvg.sample(); // default sample function
+  }
 
+  EXPECT_EQ(cvg.odd_values_cvp.get_inst_coverage(), 50);
+  EXPECT_EQ(cvg.never_sample_cvp.get_inst_coverage(), 0);
+  EXPECT_EQ(cvg.get_inst_coverage(), 25);
 }
