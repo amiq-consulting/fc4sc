@@ -42,7 +42,7 @@ public:
 
 	std::vector<interval_t<T>> allowed_bins;
 
-	binsof() {};
+	binsof() {}
 	
 	binsof(coverpoint<T> cvp) {
 

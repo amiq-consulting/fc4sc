@@ -53,7 +53,7 @@ class cross : public cvp_base
 {
 
   /*! Sampling switch */
-  bool colect = true;
+  bool collect = true;
 
   /*! Total number of bins in this cross */
   uint64_t total_bins = 0;
@@ -92,11 +92,11 @@ class cross : public cvp_base
    *  \returns True if each value is in its corresponding coverpoint
    */
   template <size_t k, typename Head, typename... Tail>
-  bool check(std::vector<std::vector<uint>> &found, Head h, Tail... t)
+  bool check(std::vector<std::vector<size_t>> &found, Head h, Tail... t)
   {
 
     // See if the current value is in its coverpoint, and where
-    std::vector<uint> bin_indexes = (static_cast<coverpoint<Head> *>(cvps_vec[k - 1]))->get_bin_index(h);
+    std::vector<size_t> bin_indexes = (static_cast<coverpoint<Head> *>(cvps_vec[k - 1]))->get_bin_index(h);
 
     // If atleast one bin has it
     bool found_in_cvp = bin_indexes.size() > 0;
@@ -117,14 +117,14 @@ class cross : public cvp_base
    * \brief End of recursion
    */
   template <size_t k>
-  bool check(std::vector<std::vector<uint>> &found)
+  bool check(std::vector<std::vector<size_t>> &found)
   {
     return true;
   }
 
 public:
   /*! Hit cross bins storage */
-  std::map<std::vector<uint>, uint64_t> bins;
+  std::map<std::vector<size_t>, uint64_t> bins;
 
   /*! Crossed coverpoints storage */
   std::vector<cvp_base *> cvps_vec;
@@ -160,7 +160,7 @@ public:
   /*!
    *  \brief Default constructor
    */
-  cross(){};
+  cross(){}
 
   /*!
    *  \brief Sampling function at cross level
@@ -169,7 +169,7 @@ public:
    */
   virtual void sample() 
   {
-    std::vector <uint> hit_bins;
+    std::vector <size_t> hit_bins;
     for (auto& cvp : cvps_vec) {
       if (cvp->last_sample_success) {
         hit_bins.push_back(cvp->last_bin_index_hit);
@@ -252,7 +252,7 @@ public:
    */
   void start()
   {
-    colect = true;
+    collect = true;
   };
 
   /*!
@@ -260,7 +260,7 @@ public:
    */
   void stop()
   {
-    colect = false;
+    collect = false;
   };
 
   /*!

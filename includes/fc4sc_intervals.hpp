@@ -44,7 +44,7 @@ namespace fc4sc {
     result_bins.push_back(new_bins[0]);
 
 
-    for (uint i = 1; i < new_bins.size(); ++i) {
+    for (size_t i = 1; i < new_bins.size(); ++i) {
 
       if(result_bins.back().second < new_bins[i].first)
         result_bins.push_back(new_bins[i]); 

@@ -110,7 +110,7 @@ private:
   std::vector<ignore_bin<T>> ignore_bins;
 
   /*! Sampling switch */
-  bool colect = true;
+  bool collect = true;
 
   bool has_sample_condition() { return !sample_condition_str.empty(); }
 
@@ -132,7 +132,7 @@ private:
 #ifdef FC4SC_DISABLE_SAMPLING
     return;
 #endif
-    if (!colect) return;
+    if (!collect) return;
 
     // 1) Search if the value is in the ignore bins
     for (auto& ig_bin_it : ignore_bins)
@@ -153,7 +153,7 @@ private:
 
     // Sample bin arrays first => higher hit chance
     uint64_t start = bins.size();
-    for (uint i = 0; i < bin_arrays.size(); ++i) {
+    for (size_t i = 0; i < bin_arrays.size(); ++i) {
 
       uint64_t hit = bin_arrays[i].sample(cvp_val);
       if (hit) {
@@ -166,7 +166,7 @@ private:
     }
 
     // Sample default bins
-    for (uint i = 0; i < bins.size(); ++i) {
+    for (size_t i = 0; i < bins.size(); ++i) {
       if (bins[i].sample(cvp_val)) {
         this->last_bin_index_hit = i;
         this->last_sample_success = 1;
@@ -403,7 +403,7 @@ public:
    */
   void start()
   {
-    colect = true;
+    collect = true;
   }
 
   /*!
@@ -411,7 +411,7 @@ public:
    */
   void stop()
   {
-    colect = false;
+    collect = false;
   }
 
   /*!

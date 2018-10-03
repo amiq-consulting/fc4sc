@@ -152,7 +152,7 @@ public:
   // }
 
   /*! Destructor */
-  virtual ~bin_base(){};
+  virtual ~bin_base(){}
 };
 
 class api_base
@@ -207,7 +207,7 @@ public:
   virtual void sample() = 0;
 
   /*! Destructor */
-  virtual ~api_base(){};
+  virtual ~api_base(){}
 };
 
 /*!
@@ -232,7 +232,7 @@ public:
   uint64_t misses = 0;
 
   /*! Destructor */
-  virtual ~cvp_base(){};
+  virtual ~cvp_base(){}
 };
 
 /*!

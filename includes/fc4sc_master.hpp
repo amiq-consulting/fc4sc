@@ -78,7 +78,7 @@ class global
         stream << "file_name: [" << inst.file_name << "]\n";
         stream << "line     : [" << inst.line << "]\n";
 
-        for (uint i = 0; i < inst.cvg_insts_name.size(); ++i)
+        for (size_t i = 0; i < inst.cvg_insts_name.size(); ++i)
           stream << "\tinst_name : [" << inst.cvg_insts[i] << "][" << inst.cvg_insts_name[i] << "]\n";
 
         return stream;
@@ -285,7 +285,7 @@ class global
         stream << ">\n";
 
         // Print each instance
-        for (uint i = 0; i < type_it.second.cvg_insts.size(); ++i)
+        for (size_t i = 0; i < type_it.second.cvg_insts.size(); ++i)
         {
 
           stream << "<ucis:cgInstance ";

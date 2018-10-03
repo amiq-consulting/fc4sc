@@ -144,10 +144,10 @@ public:
   /*!
    *  \brief Default constructor
    */
-  bin() : name("empty_bin") {};
+  bin() : name("empty_bin") {}
 
   /*! Destructor */
-  virtual ~bin(){};
+  virtual ~bin(){}
 
   uint64_t get_hitcount() const
   {
@@ -178,7 +178,7 @@ public:
    */
   bool contains(const T &val) const
   {
-    for (uint i = 0; i < intervals.size(); ++i)
+    for (size_t i = 0; i < intervals.size(); ++i)
       if (intervals[i].first <= val && intervals[i].second >= val)
         return true;
 
@@ -200,7 +200,7 @@ public:
     print_xml_header(stream, "default");
 
     // Print each range. Coverpoint writes the header (name etc.)
-    for (uint i = 0; i < intervals.size(); ++i)
+    for (size_t i = 0; i < intervals.size(); ++i)
     {
       stream << "<ucis:range \n"
              << "from=\"" << intervals[i].first << "\" \n"
@@ -247,9 +247,9 @@ public:
    *  \brief Forward to parent constructor
    */
   template <typename... Args>
-  explicit illegal_bin(Args... args) : bin<T>::bin(args...){};
+  explicit illegal_bin(Args... args) : bin<T>::bin(args...){}
 
-  virtual ~illegal_bin(){};
+  virtual ~illegal_bin(){}
 
   /*!
    * \brief Same as bin::sample(const T& val)
@@ -258,7 +258,7 @@ public:
    */
   uint64_t sample(const T &val)
   {
-    for (uint i = 0; i < this->intervals.size(); ++i)
+    for (size_t i = 0; i < this->intervals.size(); ++i)
       if (val >= this->intervals[i].first && val <= this->intervals[i].second) {
         // construct exception to be thrown
         std::stringstream ss; ss << val;
@@ -277,7 +277,7 @@ public:
     this->print_xml_header(stream, "illegal");
 
     // Print each range. Coverpoint writes the header (name etc.)
-    for (uint i = 0; i < this->intervals.size(); ++i)
+    for (size_t i = 0; i < this->intervals.size(); ++i)
     {
       stream << "<ucis:range \n"
              << "from=\"" << this->intervals[i].first << "\" \n"
@@ -312,9 +312,9 @@ public:
    *  \brief Forward to parent constructor
    */
   template <typename... Args>
-  explicit ignore_bin(Args... args) : bin<T>::bin(args...){};
+  explicit ignore_bin(Args... args) : bin<T>::bin(args...){}
 
-  virtual ~ignore_bin(){};
+  virtual ~ignore_bin(){}
 };
 
 
@@ -372,7 +372,7 @@ public:
 
 
 
-  virtual void print_range(std::ostream &stream, T start, T stop, T step, uint index) const
+  virtual void print_range(std::ostream &stream, T start, T stop, T step, size_t index) const
   {
 
     if (index != 0)
@@ -397,7 +397,7 @@ public:
 
     T step = (stop - start + 1) / count;
 
-    for (uint i = 0; i < count; ++i)
+    for (size_t i = 0; i < count; ++i)
     {
       stream << "<ucis:coverpointBin name=\"" << this->name << "_" << i+1 << "\" \n";
       stream << "type=\"" << "default" << "\" "
