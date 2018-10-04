@@ -244,6 +244,15 @@ public:
 class cvg_base : public api_base
 {
 public:
+  virtual void register_cvp(cvp_base* const cvp) {
+    // Runtime check to make sure that all the coverpoints are different.
+    // Normally, this should be the case, but if for whatever reason this
+    // function is used multiple times with pointers to the the same coverpoint,
+    // we make sure that the damage is minimal at least.
+    if (std::find(std::begin(cvps), std::end(cvps), cvp) != std::end(cvps))
+      throw ("Coverpoint already registered in this covergroup!");
+    cvps.push_back(cvp);
+  }
 
   /*! Retrieve sampling point, instance name and sampling point name */ 
   virtual cvp_metadata_t get_strings(cvp_base *cvp) = 0;
@@ -265,7 +274,6 @@ public:
 
   /*! Aproximate line where this type is declared */
   uint32_t line;
-
 };
 
 class illegal_bin_sample_exception : public std::exception {

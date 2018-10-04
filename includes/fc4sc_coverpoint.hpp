@@ -273,15 +273,15 @@ public:
 
 
   template <typename... Args>
-  coverpoint(cvg_base *n, Args... args) : coverpoint(args...)
+  coverpoint(cvg_base *parent_cvg, Args... args) : coverpoint(args...)
   {
     // Because the way that delegated constructors work, the coverpoint arguments
     // processed in the reverse order, resulting in a reversed vector of bins.
     reverse(bins.begin(), bins.end());
-    n->cvps.push_back(this);
+    parent_cvg->register_cvp(this);
 
     // set strings here
-    auto strings = n->get_strings(this);
+    auto strings = parent_cvg->get_strings(this);
 
     this->sample_point = static_cast<T *>(std::get<0>(strings));
     this->name = std::get<1>(strings);

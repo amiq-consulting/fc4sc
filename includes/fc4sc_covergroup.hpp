@@ -63,13 +63,9 @@ protected:
     std::function<T()>&& sample_expr, std::string&& sample_expr_str,
     std::function<bool()>&& sample_cond, std::string&& sample_cond_str) {
 
-    // Runtime check to make sure that all the coverpoints are different.
-    // Normally, this should be the case, but if for whatever reason this
-    // function is used multiple times with pointers to the the same coverpoint,
-    // we make sure that the damage is minimal at least.
-    if (std::find(std::begin(cvps), std::end(cvps), cvp) != std::end(cvps))
-      throw ("Coverpoint already registered in this covergroup!");
-
+    // NOTE: VERY important! Do not attempt to dereference the cvp pointer in
+    // any way because it points to uninitialized memory!
+    cvg_base::register_cvp(cvp);
     coverpoint<T> cvp_structure;
     cvp_structure.has_sample_expression = true;
     cvp_structure.sample_expression = sample_expr;
@@ -77,7 +73,6 @@ protected:
     cvp_structure.sample_expression_str = sample_expr_str;
     cvp_structure.sample_condition_str = sample_cond_str;
     cvp_structure.name = cvp_name;
-    cvps.push_back(cvp);
     return cvp_structure;
   }
 
