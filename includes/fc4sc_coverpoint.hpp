@@ -277,7 +277,7 @@ public:
   {
     // Because the way that delegated constructors work, the coverpoint arguments
     // processed in the reverse order, resulting in a reversed vector of bins.
-    reverse(bins.begin(), bins.end());
+    std::reverse(bins.begin(), bins.end());
     parent_cvg->register_cvp(this);
 
     // set strings here

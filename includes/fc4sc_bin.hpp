@@ -43,15 +43,10 @@
 
 namespace fc4sc
 {
-
-template <typename T>
-class coverpoint;
-
-template <typename T>
-class binsof;
-
-template <typename T>
-class bin;
+// forward declarations
+template <typename T> class coverpoint;
+template <typename T> class binsof;
+template <typename T> class bin;
 
 template <typename T>
 static std::vector<interval_t<T>> reunion(const bin<T>& lhs, const bin<T>& rhs);
@@ -72,32 +67,11 @@ static std::vector<interval_t<T>> intersection(const bin<T>& lhs, const std::vec
 template <class T>
 class bin : public bin_base
 {
+private:
   static_assert(std::is_arithmetic<T>::value, "Type must be numeric!");
-    
   friend binsof<T>;
   friend coverpoint<T>;
 
-protected:
-
-  void print_xml_header(std::ostream &stream, const std::string &type) const
-  {
-    stream << "<ucis:coverpointBin name=\"" << name << "\" \n";
-    stream << "type=\""
-           << type
-           << "\" "
-           << "alias=\"" << get_hitcount() << "\""
-           << ">\n";
-  }
-
-  uint64_t hits = 0;
-
-  /*! Storage for the values. All are converted to intervals */
-  std::vector<interval_t<T>> intervals;
-
-  /*! Name of the bin */
-  std::string name;
-
-private:
   // These constructors are private, making the only public constructor be
   // the one which receives a name as the first argument. This forces the user
   // to give a name for each instantiated bin.
@@ -124,6 +98,25 @@ private:
     intervals.push_back(interval);
   }
 
+protected:
+  void print_xml_header(std::ostream &stream, const std::string &type) const
+  {
+    stream << "<ucis:coverpointBin name=\"" << name << "\" \n";
+    stream << "type=\""
+           << type
+           << "\" "
+           << "alias=\"" << get_hitcount() << "\""
+           << ">\n";
+  }
+
+  uint64_t hits = 0;
+
+  /*! Storage for the values. All are converted to intervals */
+  std::vector<interval_t<T>> intervals;
+
+  /*! Name of the bin */
+  std::string name;
+
 public:
   /* Virtual function used to register this bin inside a coverpoint */
   virtual void add_to_cvp(coverpoint<T> &cvp) const
@@ -147,7 +140,7 @@ public:
   bin() : name("empty_bin") {}
 
   /*! Destructor */
-  virtual ~bin(){}
+  virtual ~bin() = default;
 
   uint64_t get_hitcount() const
   {
@@ -249,7 +242,7 @@ public:
   template <typename... Args>
   explicit illegal_bin(Args... args) : bin<T>::bin(args...){}
 
-  virtual ~illegal_bin(){}
+  virtual ~illegal_bin() = default;
 
   /*!
    * \brief Same as bin::sample(const T& val)
@@ -314,7 +307,7 @@ public:
   template <typename... Args>
   explicit ignore_bin(Args... args) : bin<T>::bin(args...){}
 
-  virtual ~ignore_bin(){}
+  virtual ~ignore_bin() = default;
 };
 
 
@@ -344,7 +337,7 @@ public:
     split_hits.resize(this->count);
   }
 
-  virtual ~bin_array() {}
+  virtual ~bin_array() = default;
 
   uint64_t size() {
     return this->count;
@@ -436,21 +429,18 @@ private:
   std::unique_ptr<bin<T>> bin_h;
   bin<T> *get_bin() const { return bin_h.get(); }
 
-
-public:
-  // Implicit cast to other bin types.
-  bin_wrapper(const bin<T>& r) : bin_h(new bin<T>(r)) {}
-  bin_wrapper(const bin_array<T>& r) : bin_h(new bin_array<T>(r)) {}
-  bin_wrapper(const illegal_bin<T>& r) : bin_h(new illegal_bin<T>(r)) {}
-  bin_wrapper(const ignore_bin<T>& r) : bin_h(new ignore_bin<T>(r)) {}
-
-  ~bin_wrapper() = default;
-
   bin_wrapper() = delete;
   bin_wrapper(bin_wrapper &) = delete;
   bin_wrapper(bin_wrapper &&) = delete;
   bin_wrapper& operator=(bin_wrapper &) = delete;
   bin_wrapper& operator=(bin_wrapper &&) = delete;
+public:
+  ~bin_wrapper() = default;
+  // Implicit cast to other bin types.
+  bin_wrapper(bin<T>        && r) : bin_h(new bin<T>        (std::move(r))) {}
+  bin_wrapper(bin_array<T>  && r) : bin_h(new bin_array<T>  (std::move(r))) {}
+  bin_wrapper(illegal_bin<T>&& r) : bin_h(new illegal_bin<T>(std::move(r))) {}
+  bin_wrapper(ignore_bin<T> && r) : bin_h(new ignore_bin<T> (std::move(r))) {}
 };
 
 } // namespace fc4sc
