@@ -273,8 +273,8 @@ public:
 
 
   template <typename... Args>
-  coverpoint(cvg_base *parent_cvg, Args... args) : coverpoint(args...)
-  {
+  coverpoint(cvg_base *parent_cvg, Args... args) : coverpoint(args...) {
+    static_assert(forbid_type<cvg_base *, Args...>::value, "Coverpoint constructor accepts only 1 parent covergroup pointer!");
     // Because the way that delegated constructors work, the coverpoint arguments
     // processed in the reverse order, resulting in a reversed vector of bins.
     std::reverse(bins.begin(), bins.end());

@@ -75,13 +75,16 @@ private:
   // These constructors are private, making the only public constructor be
   // the one which receives a name as the first argument. This forces the user
   // to give a name for each instantiated bin.
+
+  /*! Default Constructor */
+  bin() = default;
   /*!
    *  \brief Takes a value and wraps it in a pair
    *  \param value Value associated with the bin
    *  \param args Rest of arguments
    */
   template <typename... Args>
-  bin(T value, Args... args) : bin(args...) {
+  bin(T value, Args... args) noexcept : bin(args...) {
     intervals.push_back(interval(value, value));
   }
 
@@ -91,7 +94,7 @@ private:
    *  \param args Rest of arguments
    */
   template <typename... Args>
-  bin(interval_t<T> interval, Args... args) : bin(args...) {
+  bin(interval_t<T> interval, Args... args) noexcept : bin(args...) {
     if (interval.first > interval.second) {
       std::swap(interval.first, interval.second);
     }
@@ -129,17 +132,13 @@ public:
    *  \param bin_name Name of the bin
    *  \param args Rest of arguments
    */
-  template <typename... Args>
-  bin(const std::string &bin_name, Args... args) : bin(args...) {
+  template<typename ...Args>
+  bin(const std::string &bin_name, Args... args) noexcept : bin(args...) {
+    static_assert(forbid_type<std::string, Args...>::value, "Bin constructor accepts only 1 name argument!");
     this->name = bin_name;
   }
 
-  /*!
-   *  \brief Default constructor
-   */
-  bin() : name("empty_bin") {}
-
-  /*! Destructor */
+  /*! Default Destructor */
   virtual ~bin() = default;
 
   uint64_t get_hitcount() const
@@ -437,10 +436,10 @@ private:
 public:
   ~bin_wrapper() = default;
   // Implicit cast to other bin types.
-  bin_wrapper(bin<T>        && r) : bin_h(new bin<T>        (std::move(r))) {}
-  bin_wrapper(bin_array<T>  && r) : bin_h(new bin_array<T>  (std::move(r))) {}
-  bin_wrapper(illegal_bin<T>&& r) : bin_h(new illegal_bin<T>(std::move(r))) {}
-  bin_wrapper(ignore_bin<T> && r) : bin_h(new ignore_bin<T> (std::move(r))) {}
+  bin_wrapper(bin<T>        && r) noexcept : bin_h(new bin<T>        (std::move(r))) {}
+  bin_wrapper(bin_array<T>  && r) noexcept : bin_h(new bin_array<T>  (std::move(r))) {}
+  bin_wrapper(illegal_bin<T>&& r) noexcept : bin_h(new illegal_bin<T>(std::move(r))) {}
+  bin_wrapper(ignore_bin<T> && r) noexcept : bin_h(new ignore_bin<T> (std::move(r))) {}
 };
 
 } // namespace fc4sc

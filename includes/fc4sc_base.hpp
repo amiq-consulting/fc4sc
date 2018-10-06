@@ -43,6 +43,22 @@
 
 #include "fc4sc_options.hpp"
 
+/*
+ * Template meta-programming tool used for checking that a parameter
+ * pack doesn't contain any argument which is convertible to a specified type.
+ * This is used in the bin & coverpoint constructors together with a
+ * static_assert in order to make sure that the user does not provide
+ * multiple arguments which must be provided only once.
+ * For bin -> the name
+ * For coverpoint -> pointer to the parent covergroup
+ */
+template<typename forbidden, typename head, typename...tail> struct forbid_type {
+  static bool constexpr value = forbid_type<forbidden, tail...>::value &&
+    (!std::is_convertible<head, forbidden>::value);
+};
+template<typename forbidden, typename first> struct forbid_type<forbidden, first> :
+  public std::__not_<std::is_convertible<first, forbidden>> {};
+
 /*!
  * \brief Macro to register your covergroup.
  *
