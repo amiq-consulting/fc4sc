@@ -259,7 +259,7 @@ class global
       for (auto &type_it : cv_data)
       {
 
-        stream << "<instanceCoverages ";
+        stream << "<ucis:instanceCoverages ";
         stream << "name=\""
                << "string"
                << "\" \n";

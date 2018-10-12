@@ -1,0 +1,421 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ucis:UCIS xmlns:ucis="UCIS" ucisVersion="1.0"  writtenBy="$USER" writtenTime="2008-09-29T03:49:45">
+<ucis:sourceFiles fileName="string" id="201" />
+<ucis:historyNodes 
+historyNodeId="200" 
+parentId="200" 
+logicalName="string" 
+physicalName="string" 
+kind="string" 
+testStatus="true" 
+simtime="1.051732E7" 
+timeunit="string" 
+runCwd="string" 
+cpuTime="1.051732E7" 
+seed="string" cmd="string" 
+args="string" compulsory="string" 
+date="2004-02-14T19:44:14" 
+userName="string" 
+cost="1000.00" 
+toolCategory="string" 
+ucisVersion="string" 
+vendorId="string" 
+vendorTool="string" 
+vendorToolVersion="string" 
+sameTests="42" 
+comment="string" 
+>
+</ucis:historyNodes>
+<instanceCoverages name="string" 
+key="1" 
+instanceId="2" 
+alias="string" 
+moduleName="output_coverage" 
+parentInstanceId="0" 
+>
+<ucis:id file="src/display.h" line="52" inlineCount="1" />
+<ucis:covergroupCoverage weight="1" >
+<ucis:cgInstance name="output_coverage_1" 
+key="3" 
+alias="string" 
+excluded="false" 
+>
+<ucis:options weight="1" goal="100" comment="" at_least="1" auto_bin_max="10" detect_overlap="0" cross_num_print_missing="0" per_instance="0" />
+<ucis:cgId cgName="output_coverage_1" moduleName="INST_PARENT_MODULE">
+<ucis:cginstSourceId file="1" line="1" inlineCount="1"/>
+<ucis:cgSourceId file="2" line="3" inlineCount="1"/>
+</ucis:cgId>
+<ucis:coverpoint name="data_ready_cvp" key="KEY" exprString="value">
+<ucis:options weight="1" goal="100" comment="" at_least="1" auto_bin_max="10" detect_overlap="0" />
+<ucis:coverpointBin alias="zero" 
+type="default">
+<ucis:range 
+from="0" 
+to ="0"
+>
+<ucis:contents coverageCount="1"></ucis:contents>
+</ucis:range>
+
+</ucis:coverpointBin>
+<ucis:coverpointBin alias="positive" 
+type="default">
+<ucis:range 
+from="1" 
+to ="2147483646"
+>
+<ucis:contents coverageCount="18"></ucis:contents>
+</ucis:range>
+
+</ucis:coverpointBin>
+<ucis:coverpointBin alias="negative" 
+type="default">
+<ucis:range 
+from="-2147483647" 
+to ="-1"
+>
+<ucis:contents coverageCount="5"></ucis:contents>
+</ucis:range>
+
+</ucis:coverpointBin>
+<ucis:coverpointBin alias="illegal_zero" 
+type="illegal">
+<ucis:range 
+from="0" 
+to ="0"
+>
+<ucis:contents coverageCount="1"></ucis:contents>
+</ucis:range>
+
+</ucis:coverpointBin>
+</ucis:coverpoint>
+
+<ucis:coverpoint name="output_valid_cvp" key="KEY" exprString="valid">
+<ucis:options weight="1" goal="100" comment="" at_least="1" auto_bin_max="10" detect_overlap="0" />
+<ucis:coverpointBin alias="valid" 
+type="default">
+<ucis:range 
+from="1" 
+to ="1"
+>
+<ucis:contents coverageCount="24"></ucis:contents>
+</ucis:range>
+
+</ucis:coverpointBin>
+<ucis:coverpointBin alias="invalid" 
+type="default">
+<ucis:range 
+from="0" 
+to ="0"
+>
+<ucis:contents coverageCount="0"></ucis:contents>
+</ucis:range>
+
+</ucis:coverpointBin>
+</ucis:coverpoint>
+
+
+</ucis:cgInstance>
+</ucis:covergroupCoverage>
+</instanceCoverages>
+<instanceCoverages name="string" 
+key="4" 
+instanceId="5" 
+alias="string" 
+moduleName="fsm_coverage" 
+parentInstanceId="0" 
+>
+<ucis:id file="src/fir.h" line="55" inlineCount="1" />
+<ucis:covergroupCoverage weight="1" >
+<ucis:cgInstance name="fsm_coverage_1" 
+key="6" 
+alias="string" 
+excluded="false" 
+>
+<ucis:options weight="1" goal="100" comment="" at_least="1" auto_bin_max="10" detect_overlap="0" cross_num_print_missing="0" per_instance="0" />
+<ucis:cgId cgName="fsm_coverage_1" moduleName="INST_PARENT_MODULE">
+<ucis:cginstSourceId file="1" line="1" inlineCount="1"/>
+<ucis:cgSourceId file="2" line="3" inlineCount="1"/>
+</ucis:cgId>
+<ucis:coverpoint name="shift_cvp" key="KEY" exprString="shifter[0]">
+<ucis:options weight="1" goal="100" comment="" at_least="1" auto_bin_max="10" detect_overlap="0" />
+<ucis:coverpointBin alias="all1" 
+type="default">
+<ucis:range 
+from="0" 
+to ="255"
+>
+<ucis:contents coverageCount="24"></ucis:contents>
+</ucis:range>
+
+</ucis:coverpointBin>
+</ucis:coverpoint>
+
+
+</ucis:cgInstance>
+</ucis:covergroupCoverage>
+</instanceCoverages>
+<instanceCoverages name="string" 
+key="7" 
+instanceId="8" 
+alias="string" 
+moduleName="stimulus_coverage" 
+parentInstanceId="0" 
+>
+<ucis:id file="src/stimulus.h" line="60" inlineCount="1" />
+<ucis:covergroupCoverage weight="1" >
+<ucis:cgInstance name="stimulus_coverage_1" 
+key="9" 
+alias="string" 
+excluded="false" 
+>
+<ucis:options weight="1" goal="100" comment="" at_least="1" auto_bin_max="10" detect_overlap="0" cross_num_print_missing="0" per_instance="0" />
+<ucis:cgId cgName="stimulus_coverage_1" moduleName="INST_PARENT_MODULE">
+<ucis:cginstSourceId file="1" line="1" inlineCount="1"/>
+<ucis:cgSourceId file="2" line="3" inlineCount="1"/>
+</ucis:cgId>
+<ucis:coverpoint name="values_cvp" key="KEY" exprString="value">
+<ucis:options weight="1" goal="100" comment="" at_least="1" auto_bin_max="10" detect_overlap="0" />
+<ucis:coverpointBin alias="zero" 
+type="default">
+<ucis:range 
+from="0" 
+to ="0"
+>
+<ucis:contents coverageCount="20"></ucis:contents>
+</ucis:range>
+
+</ucis:coverpointBin>
+<ucis:coverpointBin alias="low" 
+type="default">
+<ucis:range 
+from="1" 
+to ="5"
+>
+<ucis:contents coverageCount="50"></ucis:contents>
+</ucis:range>
+<ucis:range 
+from="255" 
+to ="255"
+>
+<ucis:contents coverageCount="0"></ucis:contents>
+</ucis:range>
+
+</ucis:coverpointBin>
+<ucis:coverpointBin alias="max" 
+type="default">
+<ucis:range 
+from="255" 
+to ="255"
+>
+<ucis:contents coverageCount="0"></ucis:contents>
+</ucis:range>
+
+</ucis:coverpointBin>
+</ucis:coverpoint>
+
+<ucis:coverpoint name="reset_cvp" key="KEY" exprString="reset">
+<ucis:options weight="1" goal="100" comment="" at_least="1" auto_bin_max="10" detect_overlap="0" />
+<ucis:coverpointBin alias="active" 
+type="default">
+<ucis:range 
+from="1" 
+to ="1"
+>
+<ucis:contents coverageCount="3"></ucis:contents>
+</ucis:range>
+
+</ucis:coverpointBin>
+<ucis:coverpointBin alias="disabled" 
+type="default">
+<ucis:range 
+from="0" 
+to ="0"
+>
+<ucis:contents coverageCount="238"></ucis:contents>
+</ucis:range>
+
+</ucis:coverpointBin>
+</ucis:coverpoint>
+
+<ucis:coverpoint name="input_valid_cvp" key="KEY" exprString="valid">
+<ucis:options weight="1" goal="100" comment="" at_least="1" auto_bin_max="10" detect_overlap="0" />
+<ucis:coverpointBin alias="valid" 
+type="default">
+<ucis:range 
+from="1" 
+to ="1"
+>
+<ucis:contents coverageCount="24"></ucis:contents>
+</ucis:range>
+
+</ucis:coverpointBin>
+<ucis:coverpointBin alias="invalid" 
+type="default">
+<ucis:range 
+from="0" 
+to ="0"
+>
+<ucis:contents coverageCount="217"></ucis:contents>
+</ucis:range>
+
+</ucis:coverpointBin>
+</ucis:coverpoint>
+
+<ucis:cross name="reset_valid_cross" key="KEY" >
+<ucis:options weight="1" goal="100" comment="" at_least="1" auto_bin_max="10" detect_overlap="0" />
+<ucis:crossExpr>input_valid_cvp</ucis:crossExpr> 
+<ucis:crossExpr>reset_cvp</ucis:crossExpr> 
+<ucis:crossBin 
+name=""  
+key="0" 
+type="default" 
+> 
+<ucis:index>0</ucis:index>
+<ucis:index>1</ucis:index>
+<ucis:contents 
+coverageCount="3"> 
+</ucis:contents> 
+</ucis:crossBin> 
+<ucis:crossBin 
+name=""  
+key="0" 
+type="default" 
+> 
+<ucis:index>1</ucis:index>
+<ucis:index>0</ucis:index>
+<ucis:contents 
+coverageCount="24"> 
+</ucis:contents> 
+</ucis:crossBin> 
+<ucis:crossBin 
+name=""  
+key="0" 
+type="default" 
+> 
+<ucis:index>1</ucis:index>
+<ucis:index>1</ucis:index>
+<ucis:contents 
+coverageCount="214"> 
+</ucis:contents> 
+</ucis:crossBin> 
+<ucis:userAttr 
+key="4" 
+type="int" 
+/> 
+</ucis:cross>
+
+
+</ucis:cgInstance>
+<ucis:cgInstance name="stimulus_coverage_2" 
+key="10" 
+alias="string" 
+excluded="false" 
+>
+<ucis:options weight="1" goal="100" comment="" at_least="1" auto_bin_max="10" detect_overlap="0" cross_num_print_missing="0" per_instance="0" />
+<ucis:cgId cgName="stimulus_coverage_2" moduleName="INST_PARENT_MODULE">
+<ucis:cginstSourceId file="1" line="1" inlineCount="1"/>
+<ucis:cgSourceId file="2" line="3" inlineCount="1"/>
+</ucis:cgId>
+<ucis:coverpoint name="values_cvp" key="KEY" exprString="value">
+<ucis:options weight="1" goal="100" comment="" at_least="1" auto_bin_max="10" detect_overlap="0" />
+<ucis:coverpointBin alias="zero" 
+type="default">
+<ucis:range 
+from="0" 
+to ="0"
+>
+<ucis:contents coverageCount="0"></ucis:contents>
+</ucis:range>
+
+</ucis:coverpointBin>
+<ucis:coverpointBin alias="low" 
+type="default">
+<ucis:range 
+from="1" 
+to ="5"
+>
+<ucis:contents coverageCount="0"></ucis:contents>
+</ucis:range>
+<ucis:range 
+from="255" 
+to ="255"
+>
+<ucis:contents coverageCount="0"></ucis:contents>
+</ucis:range>
+
+</ucis:coverpointBin>
+<ucis:coverpointBin alias="max" 
+type="default">
+<ucis:range 
+from="255" 
+to ="255"
+>
+<ucis:contents coverageCount="0"></ucis:contents>
+</ucis:range>
+
+</ucis:coverpointBin>
+</ucis:coverpoint>
+
+<ucis:coverpoint name="reset_cvp" key="KEY" exprString="reset">
+<ucis:options weight="1" goal="100" comment="" at_least="1" auto_bin_max="10" detect_overlap="0" />
+<ucis:coverpointBin alias="active" 
+type="default">
+<ucis:range 
+from="1" 
+to ="1"
+>
+<ucis:contents coverageCount="0"></ucis:contents>
+</ucis:range>
+
+</ucis:coverpointBin>
+<ucis:coverpointBin alias="disabled" 
+type="default">
+<ucis:range 
+from="0" 
+to ="0"
+>
+<ucis:contents coverageCount="0"></ucis:contents>
+</ucis:range>
+
+</ucis:coverpointBin>
+</ucis:coverpoint>
+
+<ucis:coverpoint name="input_valid_cvp" key="KEY" exprString="valid">
+<ucis:options weight="1" goal="100" comment="" at_least="1" auto_bin_max="10" detect_overlap="0" />
+<ucis:coverpointBin alias="valid" 
+type="default">
+<ucis:range 
+from="1" 
+to ="1"
+>
+<ucis:contents coverageCount="0"></ucis:contents>
+</ucis:range>
+
+</ucis:coverpointBin>
+<ucis:coverpointBin alias="invalid" 
+type="default">
+<ucis:range 
+from="0" 
+to ="0"
+>
+<ucis:contents coverageCount="0"></ucis:contents>
+</ucis:range>
+
+</ucis:coverpointBin>
+</ucis:coverpoint>
+
+<ucis:cross name="reset_valid_cross" key="KEY" >
+<ucis:options weight="1" goal="100" comment="" at_least="1" auto_bin_max="10" detect_overlap="0" />
+<ucis:crossExpr>input_valid_cvp</ucis:crossExpr> 
+<ucis:crossExpr>reset_cvp</ucis:crossExpr> 
+<ucis:userAttr 
+key="4" 
+type="int" 
+/> 
+</ucis:cross>
+
+
+</ucis:cgInstance>
+</ucis:covergroupCoverage>
+</instanceCoverages>
+</ucis:UCIS>

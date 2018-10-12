@@ -25,6 +25,7 @@
 """
 import os
 import sys
+import xml.etree.ElementTree as ET
 from fnmatch import fnmatch
 
 def find_xmls(directory):
@@ -33,6 +34,15 @@ def find_xmls(directory):
             if fnmatch(fname, '*.xml'):
                 filename = os.path.join(rootdir, fname)
                 yield filename
+
+def parseXML(name):
+    tree = ET.parse(name)
+    root = tree.getroot()
+    print("Parsing XML...")
+    print("Root has tag [{0}] and attribute [{1}]".format(root.tag, root.attrib))
+    
+    for child in root:
+        print child.tag, child.attrib
 
 if __name__ == "__main__":
     # the search top directory is by default the execution directory 
@@ -45,5 +55,8 @@ if __name__ == "__main__":
     
     for filename in find_xmls(search_top_dir):
         print ('Found XML source: ' + filename)
-        # TODO: parse xml file and produce a merged coverage db
-        # also check that the file is using UCIS schema       
+        
+        parseXML(filename)
+               
+
+    print("Done!")
