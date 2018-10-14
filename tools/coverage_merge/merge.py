@@ -38,24 +38,38 @@ def find_xmls(directory):
 def parseXML(name):
     tree = ET.parse(name)
     root = tree.getroot()
-    print("Parsing XML...")
-    print("Root has tag [{0}] and attribute [{1}]".format(root.tag, root.attrib))
+    
+    if root.tag != "{UCIS}UCIS":
+        print("Skipping non-UCIS XML")
+        return
+    else:
+        print("Root has tag [{0}] and attribute [{1}]".format(root.tag, root.attrib))
     
     for child in root:
-        print child.tag, child.attrib
+        if child.attrib:
+            print (child.tag, child.attrib)
+        else:
+            print (child.tag)
+    
+    # TODO: parse covergroups?
+    for instanceCoverages in root.findall('{UCIS}instanceCoverages'):
+        moduleName = instanceCoverages.attrib['moduleName']
+        print(moduleName)
 
 if __name__ == "__main__":
     # the search top directory is by default the execution directory 
     search_top_dir = os.getcwd()
+    merged_db_name = "coverage_merged_db.xml"
     if len(sys.argv) > 1: # if specified file path
         search_top_dir = sys.argv[1]
+    if len(sys.argv) > 2: # if specified merged database name
+        merged_db_name = sys.argv[2]
 
-    print("Top directory: " + search_top_dir)
-    merged_db_path = os.path.join(search_top_dir, "coverage_merged_db.xml")
+    print("Searching for XMLs in top directory: \n" + search_top_dir)
+    merged_db_path = os.path.join(search_top_dir, merged_db_name)
     
     for filename in find_xmls(search_top_dir):
-        print ('Found XML source: ' + filename)
-        
+        print ('*****Parsing XML: ' + filename)
         parseXML(filename)
                
 
