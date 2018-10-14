@@ -308,7 +308,7 @@ class global
 
         stream << "</ucis:covergroupCoverage>\n";
 
-        stream << "</instanceCoverages>\n";
+        stream << "</ucis:instanceCoverages>\n";
       }
 
       stream << "</ucis:UCIS>\n";
@@ -371,12 +371,12 @@ class global
     };
 
     /*!
-   * \brief Computes the coverage percentage across all instances of a given type
-   * \param type Unmangled type name
-   * \param hit_bins Total number of hit bins in instances
-   * \param total_bins Total number of bins in instances
-   * \returns Double between 0 and 100
-   */
+     * \brief Computes the coverage percentage across all instances of a given type
+     * \param type Unmangled type name
+     * \param hit_bins Total number of hit bins in instances
+     * \param total_bins Total number of bins in instances
+     * \returns Double between 0 and 100
+     */
     // TODO merge hit_bins
     double get_coverage(const std::string &type, int &hit_bins, int &total_bins)
     {
