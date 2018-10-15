@@ -235,8 +235,8 @@ public:
 class cvp_base : public api_base
 {
 public:
-  uint last_bin_index_hit;
-  uint last_sample_success;
+  size_t last_bin_index_hit;
+  bool last_sample_success;
 
   /*! Instance specific options */
   cvp_option option;

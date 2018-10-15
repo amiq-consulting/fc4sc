@@ -132,12 +132,15 @@ private:
 #ifdef FC4SC_DISABLE_SAMPLING
     return;
 #endif
-    if (!collect) return;
+    if (!collect) {
+      last_sample_success = false;
+      return;
+    }
 
     // 1) Search if the value is in the ignore bins
     for (auto& ig_bin_it : ignore_bins)
       if (ig_bin_it.sample(cvp_val)) {
-        this->last_sample_success = 0;
+        this->last_sample_success = false;
         return;
       }
 
@@ -145,7 +148,7 @@ private:
     for (auto& il_bin_hit : illegal_bins) {
       try { il_bin_hit.sample(cvp_val);  }
       catch (illegal_bin_sample_exception &e) {
-        this->last_sample_success = 0;
+        this->last_sample_success = false;
         e.update_cvp_info(this->name);
         throw e;
       }
@@ -158,7 +161,7 @@ private:
       uint64_t hit = bin_arrays[i].sample(cvp_val);
       if (hit) {
         this->last_bin_index_hit = start + hit - 1;
-        this->last_sample_success = 1;
+        this->last_sample_success = true;
         return;
       }
 
@@ -169,12 +172,12 @@ private:
     for (size_t i = 0; i < bins.size(); ++i) {
       if (bins[i].sample(cvp_val)) {
         this->last_bin_index_hit = i;
-        this->last_sample_success = 1;
+        this->last_sample_success = true;
         return;
       }
     }
   
-    this->last_sample_success = 0;
+    this->last_sample_success = false;
     misses++;
   }
 
@@ -303,6 +306,13 @@ public:
     if (has_sample_expression) {
       if (!has_sample_condition() || sample_condition())
          this->sample(sample_expression());
+      else {
+        // This is a fix so that crosses are not sampled if any of the coverpoints
+        // used for crossing has a sample condition which is not met.
+        // FIXME: the cross should be sampled separately, not conditioned by the coverpoints!
+        this->last_sample_success = false;
+        this->last_bin_index_hit = 0;
+      }
     }
     else {
       this->sample(*sample_point);

@@ -257,8 +257,11 @@ if __name__ == "__main__":
 #     vendorToolVersion="string" 
 #     sameTests="42" 
 #     comment="string" 
-
-    mergeDB.write(file_or_filename = merged_db_path,
-                  encoding = "UTF-8", 
-                  xml_declaration = True)
-    print("Done!\nResulted merged DB can be found at:\n" + merged_db_path)
+    
+    if mergeDB is not None:
+        mergeDB.write(file_or_filename = merged_db_path,
+                      encoding = "UTF-8", 
+                      xml_declaration = True)
+        print("Done!\nResulted merged DB can be found at:\n" + merged_db_path)
+    else:
+        print("Error! No XML files found under " + search_top_dir)
