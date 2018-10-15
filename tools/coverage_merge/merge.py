@@ -145,7 +145,8 @@ def parseXML(filename, mergeDBtree):
 
         if searchElement is None:
             print("Found new coverage type [{0}]".format(covergroupName))
-            mergeDBroot.append(instanceCoverages) # add the element to the mergedDB under root element
+            mergeParent = mergeDBroot
+            mergeParent.append(instanceCoverages) # add the element to the mergedDB under root element
             continue # skip processing the sub-elements
         
         for covergroupCoverage in instanceCoverages.findall('{0}:covergroupCoverage'.format(nsstr), ns):
@@ -160,7 +161,10 @@ def parseXML(filename, mergeDBtree):
                 
                 if searchElement is None:
                     print("Found new coverage instance [{0}]".format(cgInstName))
-                    covergroupCoverage.append(covergroupCoverage) # add the element to the covergroup
+                    query = "./{0}:instanceCoverages[@{1}='{2}']/{0}:covergroupCoverage".format(
+                        nsstr, covergroupNameAttrib, covergroupName)
+                    mergeParent = mergeDBtree.find(query, ns)
+                    mergeParent.append(cgInstance) # add the element to the covergroup
                     continue # skip processing the sub-elements
               
                 """ 3) Parse coverpoint """
@@ -176,8 +180,10 @@ def parseXML(filename, mergeDBtree):
                         raise ValueError("coverpoint not present in the mergeDB!")
                         continue # skip processing the sub-elements
                     
-                    # TODO: parse bins
+                    """ 4) Parse bins """
                     for bin in coverpoint.findall('{0}:coverpointBin'.format(nsstr), ns):
+                        # TODO: parse bins
+                        """
                         binNameAttrib = 'name'
                         binName = coverpoint.get(binNameAttrib)
                         print ("\t[bin] {0}".format(binName))
@@ -190,7 +196,7 @@ def parseXML(filename, mergeDBtree):
                             print("Found new bin [{0}]".format(binName))
                             covergroupCoverage.append(covergroupCoverage) # add the element to the covergroup
                             continue # skip processing the sub-elements
-                        
+                        """
                         totalhits = 0
                         # parse all bin ranges
                         for range in bin.findall('{0}:range'.format(nsstr), ns):
