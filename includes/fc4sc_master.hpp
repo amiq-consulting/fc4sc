@@ -161,7 +161,7 @@ class global
       // Header
       stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
              << "\n";
-      stream << "<ucis:UCIS xmlns:ucis=\"UCIS\" ucisVersion=\"1.0\" ";
+      stream << "<ucis:UCIS xmlns:ucis=\"http://www.w3.org/2001/XMLSchema-instance\" ucisVersion=\"1.0\" ";
       stream << " writtenBy=\""
              << "$USER"
              << "\"\n";
