@@ -39,21 +39,7 @@ def find_xmls(directory):
                 filename = os.path.join(rootdir, fname)
                 yield filename
 
-def parseXML(filename, mergeDBtree):
-    tree = ET.parse(filename)
-    root = tree.getroot()
-    
-    tagstr = root.tag[-len("UCIS"):]
-    if tagstr != "UCIS":
-        print("Skipping non-UCIS XML: Tag [{0}]".format(tagstr))
-        return None
-    
-    if mergeDBtree is None:
-        # return the first parsed XML to be used as the merged DB:
-        # the following parsed XMLs will be "added" to this one
-        print("First UCIS XML found; setting as base DB!")
-        return tree
-    
+def parseXML(parseRoot, mergeDBtree):
     mergeDBroot = mergeDBtree.getroot()
     
     """
@@ -164,7 +150,7 @@ def parseXML(filename, mergeDBtree):
     userAttrEl = '{0}:userAttr'.format(nsstr)
     
     """ 1) Parse covergroup types """
-    for instanceCoverages in root.findall(instanceCoveragesEl, ns):
+    for instanceCoverages in parseRoot.findall(instanceCoveragesEl, ns):
         covergroupNameAttrib = 'moduleName'
         covergroupName = instanceCoverages.get(covergroupNameAttrib)
         print("Parsing covergroup type: {0}".format(covergroupName))
@@ -352,8 +338,6 @@ def parseXML(filename, mergeDBtree):
                     mergeCrossElement.remove(userAttrElement)
                     mergeCrossElement.append(userAttrElement)
         print("\n")
-        
-    return mergeDBtree
 
 if __name__ == "__main__":
     # the search top directory is by default the execution directory 
@@ -378,15 +362,33 @@ if __name__ == "__main__":
     
     # the master ucis DB which will be "merged" into when parsing additional DBs
     mergeDB = None
-
+    # list of the file names that are successfully parsed and merged
+    filelist = []
     for filename in find_xmls(search_top_dir):
+        # found file matches the output file; skip it
         if filename == merged_db_path:
+            print("Warning! Input File: \n{0}\nmatches output target file => will not be parsed!".format(filename))
             continue
-            
-        print("Found XML file: {0}\n".format(filename))
         
-        # TODO: surround by try-catch and print found errors
-        mergeDB = parseXML(filename, mergeDB)
+        print("Found XML file: {0}".format(filename))
+        
+        # parse the found XML  
+        parseTree = ET.parse(filename)
+        parseRoot = parseTree.getroot()
+        
+        tagstr = parseRoot.tag[-len("UCIS"):]
+        if tagstr != "UCIS":
+            print("Skipping non-UCIS DB XML file with tag [{0}]".format(tagstr))
+            continue
+
+        filelist.append(filename)
+        if mergeDB is None:
+            print("First UCIS XML found; setting as base DB!")
+            mergeDB = parseTree
+            continue
+        
+        # TODO: surround by try-catch and handle thrown exceptions
+        parseXML(parseRoot, mergeDB)
         
     
     # TODO: parse the resulted DB and change the "UCIS ID" attributes to be unique
@@ -417,10 +419,19 @@ if __name__ == "__main__":
 #     sameTests="42" 
 #     comment="string" 
     
-    if mergeDB is not None:
-        mergeDB.write(file_or_filename = merged_db_path,
-                      encoding = "UTF-8", 
-                      xml_declaration = True)
-        print("Done!\nResulted merged DB can be found at:\n" + merged_db_path)
-    else:
+    if not filelist:
         print("Error! No XML files found under " + search_top_dir)
+        exit(1)
+    
+    mergeDB.write(file_or_filename = merged_db_path,
+                  encoding = "UTF-8", 
+                  xml_declaration = True)
+
+    print("Done!");
+    print("Searching was done recursively under directory: \n{0}\n".format(search_top_dir))
+    
+    print("List of merged UCIS DB files:")
+    for f in filelist:
+        print(f)
+        
+    print("\nResulted merged UCIS DB can be found at:\n" + merged_db_path)
