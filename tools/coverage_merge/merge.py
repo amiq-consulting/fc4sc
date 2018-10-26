@@ -31,7 +31,27 @@ from fnmatch import fnmatch
 # namespace map
 nsstr = 'ucis'
 ns = {nsstr : 'http://www.w3.org/2001/XMLSchema-instance'}
+# NOT USED; TODO: REMOVE?
+ucis_db = {
+    "instanceCoverages"  : '{0}:instanceCoverages' .format(nsstr),
+    "covergroupCoverage" : '{0}:covergroupCoverage'.format(nsstr),
+    "cgInstance"         : '{0}:cgInstance'        .format(nsstr),
+    "coverpoint"         : '{0}:coverpoint'        .format(nsstr),
+    "coverpointBin"      : '{0}:coverpointBin'     .format(nsstr),
+    "range"              : '{0}:range'             .format(nsstr),
+    "contents"           : '{0}:contents'          .format(nsstr),
+    "cross"              : '{0}:cross'             .format(nsstr),
+    "crossBin"           : '{0}:crossBin'          .format(nsstr),
+    "crossExpr"          : '{0}:crossExpr'         .format(nsstr),
+    "index"              : '{0}:index'             .format(nsstr),
+    "userAttr"           : '{0}:userAttr'          .format(nsstr)
+}
+
+def findall_ucis_children(element, subElementName):
+    global ns, nsstr
+    return element.findall('{0}:{1}'.format(nsstr, subElementName), ns)
     
+
 def find_xmls(directory):
     for rootdir, _, files in os.walk(directory):
         for fname in files:
@@ -134,210 +154,198 @@ def parseXML(parseRoot, mergeDBtree):
         same order
             
     """
-    
-    #TODO: replace all * characters in the XPath queries with the actual element names!
-    instanceCoveragesEl = '{0}:instanceCoverages'.format(nsstr)
-    covergroupCoverageEl = '{0}:covergroupCoverage'.format(nsstr)
-    cgInstanceEl = '{0}:cgInstance'.format(nsstr)
-    coverpointEl = '{0}:coverpoint'.format(nsstr)
-    coverpointBinEl = '{0}:coverpointBin'.format(nsstr)
-    rangeEl = '{0}:range'.format(nsstr)
-    contentsEl = '{0}:contents'.format(nsstr)
-    crossEl = '{0}:cross'.format(nsstr)
-    crossBinEl = '{0}:crossBin'.format(nsstr)
-    crossExprEl = '{0}:crossExpr'.format(nsstr)
-    indexEl = '{0}:index'.format(nsstr)
-    userAttrEl = '{0}:userAttr'.format(nsstr)
-    
+    global ns, nsstr
     """ 1) Parse covergroup types """
-    for instanceCoverages in parseRoot.findall(instanceCoveragesEl, ns):
-        covergroupNameAttrib = 'moduleName'
-        covergroupName = instanceCoverages.get(covergroupNameAttrib)
-        print("Parsing covergroup type: {0}".format(covergroupName))
-        query = "./*[@{0}='{1}']".format(covergroupNameAttrib, covergroupName)
-        searchElement = mergeDBtree.find(query)
+    for instanceCoverages in findall_ucis_children(parseRoot, "instanceCoverages"):
+        covergroupTypeNameAttrib = 'moduleName'
+        covergroupTypeName = instanceCoverages.get(covergroupTypeNameAttrib)
+        xpath_query = "./*[@{1}='{2}']/{0}:covergroupCoverage".format(
+            nsstr, covergroupTypeNameAttrib, covergroupTypeName)
+        searchElement = parseRoot.find(xpath_query, ns)
 
-        if searchElement is None:
-            print("Found new coverage type [{0}]".format(covergroupName))
+        print("Parsing covergroup type: {0}".format(covergroupTypeName))
+        if searchElement is not None:
+            parse_covergroup_type(searchElement, xpath_query, mergeDBtree)
+            print("\n")
+        else:
+            print("Found new coverage type [{0}]".format(covergroupTypeName))
             mergeParent = mergeDBroot
             mergeParent.append(instanceCoverages) # add the element to the mergedDB under root element
+
+def parse_covergroup_type(covergroup_type, parent_query, mergeDBtree):
+    global ns
+    """ Parse covergroup instance """
+    for cgInstance in findall_ucis_children(covergroup_type, "cgInstance"):
+        cgInstNameAttrib = 'name'
+        cgInstName = cgInstance.get(cgInstNameAttrib)
+        xpath_query = parent_query + "/" + "*[@{0}='{1}']".format(cgInstNameAttrib, cgInstName)
+        searchElement = mergeDBtree.find(xpath_query, ns)
+        
+        print ("\t[cgInstance] {0}".format(cgInstName))
+        if searchElement is not None:
+            parse_coverpoints(cgInstance, xpath_query, mergeDBtree)
+            parse_crosses(cgInstance, xpath_query, mergeDBtree)
+        else:
+            print("Found new coverage instance [{0}]".format(cgInstName))
+            mergeParent = mergeDBtree.find(parent_query, ns)
+            mergeParent.append(cgInstance) # add the element to the covergroup
+
+def parse_coverpoints(cgInstance, parent_query, mergeDBtree):
+    global ns
+    """ Parse coverpoint """
+    for coverpoint in findall_ucis_children(cgInstance, "coverpoint"):
+        cvpNameAttrib = 'name'
+        cvpName = coverpoint.get(cvpNameAttrib)
+        xpath_query = parent_query + "/" + "*[@{0}='{1}']".format(cvpNameAttrib, cvpName)
+        searchElement = mergeDBtree.find(xpath_query, ns)
+    
+        print ("\t\t[coverpoint] {0}".format(cvpName))
+        if searchElement is not None:
+            parse_coverpoint_bins(coverpoint, xpath_query, mergeDBtree)
+        else:
+            raise ValueError("coverpoint not present in the mergeDB!")
+        
+def parse_coverpoint_bins(coverpoint, parent_query, mergeDBtree):
+    """ Parse bins """
+    for bin in findall_ucis_children(coverpoint, "coverpointBin"):
+        binNameAttrib = 'name'
+        binName = bin.get(binNameAttrib)
+        xpath_query = parent_query + "/" + "*[@{0}='{1}']".format(binNameAttrib, binName)
+        binMergeElement = mergeDBtree.find(xpath_query, ns)
+        
+        if binMergeElement is not None:
+            merge_bin_hits(bin, binMergeElement, xpath_query, mergeDBtree)
+        else:
+            print("\t\tFound new bin [{0}]".format(binName))
+            mergeParent = mergeDBtree.find(xpath_query + "/..", ns)
+            mergeParent.append(bin) # add the bin to the covergpoint
+        
+def merge_bin_hits(bin, binMergeElement, parent_query, mergeDBtree):
+    global ns, nsstr
+    """ Sum the bin ranges' hit counts """
+    # merge hits for bins which are present in both the parsed DB and mergeDB
+    for range in findall_ucis_children(bin, "range"):
+        contents = range.find('{0}:contents'.format(nsstr), ns)
+        rangeHitCount = int(contents.get('coverageCount'))
+        xpath_query = parent_query + "/" + '{0}:range'.format(nsstr)
+        searchElement = mergeDBtree.find(xpath_query, ns)
+        
+        if searchElement is None:
+            raise ValueError("Range not found! Bin contents differ between mergeDB and parsed XML!")
+        
+        sameFrom = searchElement.get('from') == range.get('from')
+        sameTo = searchElement.get('to') == range.get('to')
+        
+        if not (sameFrom and sameTo):
+            raise ValueError("Range limits differ between mergeDB and parsed XML!")
+        
+        mergeContentsElement = searchElement.find('{0}:contents'.format(nsstr), ns)
+        parsedContentsElement = range.find('{0}:contents'.format(nsstr), ns)
+        totalhits = int(mergeContentsElement.get('coverageCount'))
+        parsedHits = int(parsedContentsElement.get('coverageCount'))
+        totalhits += parsedHits
+        
+        # NOTE: alias attribute is set in the coverpointBin element because the
+        # javascript gui application uses this field for showing the number of hits! 
+        binMergeElement.set('alias', str(totalhits))
+        mergeContentsElement.set('coverageCount', str(totalhits))
+
+    print ("\t\t\t[bin:{1}] {0} -> {2}".format(
+        bin.get('name'), bin.get('type'), totalhits))    
+    
+def parse_crosses(cgInstance, parent_query, mergeDBtree):
+    global ns, nsstr
+    for cross in findall_ucis_children(cgInstance, "cross"):
+        crossNameAttrib = 'name'
+        crossName = cross.get(crossNameAttrib)
+        xpath_query = parent_query + "/" + "*[@{0}='{1}']".format(crossNameAttrib, crossName)
+        mergeCrossElement = mergeDBtree.find(xpath_query, ns)
+        
+        print ("\t\t[cross] {0}".format(crossName))
+        if mergeCrossElement is None:
+            raise ValueError("cross not present in the mergeDB!")
             continue # skip processing the sub-elements
         
-        for covergroupCoverage in instanceCoverages.findall(covergroupCoverageEl, ns):
-            """ 2) Parse covergroup instance """
-            for cgInstance in covergroupCoverage.findall(cgInstanceEl, ns):
-                cgInstNameAttrib = 'name'
-                cgInstName = cgInstance.get(cgInstNameAttrib)
-                print ("\t[cgInstance] {0}".format(cgInstName))
-                query = "./*[@{0}='{1}']//*[@{2}='{3}']".format(
-                    covergroupNameAttrib, covergroupName, cgInstNameAttrib, cgInstName)
-                searchElement = mergeDBtree.find(query)
+        # skip processing crosses with no hits in the parse XML
+        if cross.find('{0}:crossBin'.format(nsstr), ns) is None:
+            print("\t\t\tParsed cross is empty; skipping...")
+            continue
+         
+        # the number of coverpoints crossed by this element
+        numCvps = len(findall_ucis_children(mergeCrossElement, 'crossExpr'))
+        
+        """ Parse cross bins """
+        mergeMap = {}
+        
+        # parse the mergeDB and store all existing cross bins and their associated hit count
+        # then, parse the current XML and update the map with the new information
+        # then, remove all the the crossBin elements from the cross
+        # then, create new crossBins elements matching the information stored in the map!
+        for crossBin in findall_ucis_children(mergeCrossElement, 'crossBin'):
+            binIndexes = []
+            for index in findall_ucis_children(crossBin, 'index'):
+                binIndexes.append(int(index.text))
+            
+            contentsElement = crossBin.find('{0}:contents'.format(nsstr), ns)
+            hitCount = int(contentsElement.get('coverageCount'))
+            
+            if len(binIndexes) != numCvps:
+                raise ValueError("Found crossBin of bigger size than the number of coverpoints!") 
+            
+            tupleIndexes = tuple(binIndexes)
+            mergeMap[tupleIndexes] = hitCount
+            # remove crossBin
+            mergeCrossElement.remove(crossBin)
+        
+        for crossBin in findall_ucis_children(cross, 'crossBin'):
+            binIndexes = []
+            for index in findall_ucis_children(crossBin ,'index'):
+                binIndexes.append(int(index.text))
+            
+            contentsElement = crossBin.find('{0}:contents'.format(nsstr), ns)
+            hitCount = int(contentsElement.get('coverageCount'))
+            
+            tupleIndexes = tuple(binIndexes)
+            if tupleIndexes in mergeMap:
+                mergeMap[tupleIndexes] = mergeMap[tupleIndexes] + hitCount
+            else:
+                mergeMap[tupleIndexes] = hitCount
+        
+        crossBinString = """<ucis:crossBin name="" key="0" type="default" xmlns:{0}="{1}">\n"""
+        crossBinString = crossBinString.format(nsstr, ns[nsstr])
+        for _ in range(numCvps):
+            crossBinString += "<ucis:index>0</ucis:index>\n"
+            
+        crossBinString += """<ucis:contents coverageCount="0"></ucis:contents>\n"""
+        crossBinString += "</ucis:crossBin>\n"
+             
+        # update crossBins element and append it to the mergeCrossElement
+        for indexesTuple in mergeMap:
+            # create new crossBin element to be added to the cross
+            crossBinElement = ET.fromstring(crossBinString)
+            print("\t\t\t" + str(indexesTuple) + " -> " + str(mergeMap[indexesTuple]))
+            
+            # get a generator for the index elements contained by this crossBin;
+            # we will need to manually iterate through this generator when updating the indexes
+            indexElementGen = iter(findall_ucis_children(crossBinElement, 'index'))
+            for i in range(len(indexesTuple)):
+                # update index element value
+                indexElementValue = indexesTuple[i]
+                indexElement = next(indexElementGen)
+                indexElement.text = str(indexElementValue)
                 
-                if searchElement is None:
-                    print("Found new coverage instance [{0}]".format(cgInstName))
-                    query = "./{0}:instanceCoverages[@{1}='{2}']/{0}:covergroupCoverage".format(
-                        nsstr, covergroupNameAttrib, covergroupName)
-                    mergeParent = mergeDBtree.find(query, ns)
-                    mergeParent.append(cgInstance) # add the element to the covergroup
-                    continue # skip processing the sub-elements
-              
-                """ 3) Parse coverpoint """
-                for coverpoint in cgInstance.findall(coverpointEl, ns):
-                    cvpNameAttrib = 'name'
-                    cvpName = coverpoint.get(cvpNameAttrib)
-                    print ("\t\t[coverpoint] {0}".format(cvpName))
-                    query = "./*[@{0}='{1}']//*[@{2}='{3}']/*[@{4}='{5}']".format(
-                        covergroupNameAttrib, covergroupName, cgInstNameAttrib, cgInstName, cvpNameAttrib, cvpName)
-                    searchElement = mergeDBtree.find(query)
-                
-                    if searchElement is None:
-                        raise ValueError("coverpoint not present in the mergeDB!")
-                        continue # skip processing the sub-elements
-                    
-                    """ 4) Parse bins """
-                    for bin in coverpoint.findall(coverpointBinEl, ns):
-                        binNameAttrib = 'name'
-                        binName = bin.get(binNameAttrib)
-                        query = "./*[@{0}='{1}']//*[@{2}='{3}']/*[@{4}='{5}']/*[@{6}='{7}']".format(
-                            covergroupNameAttrib, covergroupName, cgInstNameAttrib, cgInstName, 
-                            cvpNameAttrib, cvpName, binNameAttrib, binName)
-                        binMergeElement = mergeDBtree.find(query)
-                        
-                        if binMergeElement is None:
-                            print("\t\tFound new bin [{0}]".format(binName))
-                            query = "./*[@{0}='{1}']//*[@{2}='{3}']/*[@{4}='{5}']".format(
-                                covergroupNameAttrib, covergroupName, cgInstNameAttrib, 
-                                cgInstName, cvpNameAttrib, cvpName)
-                            mergeParent = mergeDBtree.find(query, ns)
-                            mergeParent.append(bin) # add the bin to the covergpoint
-                            continue # skip processing the sub-elements
-                        
-                        """ 5) Sum the bin ranges' hit counts """
-                        # merge hits for bins which are present in both the parsed DB and mergeDB
-                        for range in bin.findall(rangeEl, ns):
-                            contents = range.find(contentsEl, ns)
-                            rangeHitCount = int(contents.get('coverageCount'))
-                            binRangeQuery = query + "/" + rangeEl
-                            searchElement = mergeDBtree.find(binRangeQuery, ns)
-                            
-                            if searchElement is None:
-                                raise ValueError("Range not found! Bin contents differ between mergeDB and parsed XML!")
-                                continue # skip processing the sub-elements
-                            
-                            sameFrom = searchElement.get('from') == range.get('from')
-                            sameTo = searchElement.get('to') == range.get('to')
-                            
-                            if not (sameFrom and sameTo):
-                                raise ValueError("Range limits differ between mergeDB and parsed XML!")
-                                continue # skip processing the sub-elements
-                            
-                            mergeContentsElement = searchElement.find(contentsEl, ns)
-                            totalhits = int(mergeContentsElement.get('coverageCount'))
-                            parsedContentsElement = range.find(contentsEl, ns)
-                            parsedHits = int(parsedContentsElement.get('coverageCount'))
-                            totalhits += parsedHits
-                            
-                            # NOTE: alias attribute is set in the coverpointBin element because the
-                            # javascript gui application uses this field for showing the number of hits! 
-                            binMergeElement.set('alias', str(totalhits))
-                            mergeContentsElement.set('coverageCount', str(totalhits))
-                            
-                        print ("\t\t\t[bin:{1}] {0} -> {2}".format(
-                            bin.get('name'), bin.get('type'), totalhits))
-    
-                
-                """ 6) Parse crosses """
-                for cross in cgInstance.findall(crossEl, ns):
-                    crossNameAttrib = 'name'
-                    crossName = cross.get(crossNameAttrib)
-                    print ("\t\t[cross] {0}".format(crossName))
-                    query = "./*[@{0}='{1}']//*[@{2}='{3}']/*[@{4}='{5}']".format(
-                        covergroupNameAttrib, covergroupName, cgInstNameAttrib, cgInstName, crossNameAttrib, crossName)
-                    mergeCrossElement = mergeDBtree.find(query, ns)
-                
-                    if mergeCrossElement is None:
-                        raise ValueError("cross not present in the mergeDB!")
-                        continue # skip processing the sub-elements
-                    
-                    # skip processing crosses with no hits in the parse XML
-                    if cross.find(crossBinEl, ns) is None:
-                        print("\t\t\tParsed cross is empty; skipping...")
-                        continue
-                     
-                    # the number of coverpoints crossed by this element
-                    numCvps = len(mergeCrossElement.findall(crossExprEl, ns))
-                    
-                    """ 7) Parse cross bins """
-                    mergeMap = {}
-                    
-                    # parse the mergeDB and store all existing cross bins and their associated hit count
-                    # then, parse the current XML and update the map with the new information
-                    # then, remove all the the crossBin elements from the cross
-                    # then, create new crossBins elements matching the information stored in the map!
-                    for crossBin in mergeCrossElement.findall(crossBinEl, ns):
-                        binIndexes = []
-                        for index in crossBin.findall(indexEl, ns):
-                            binIndexes.append(int(index.text))
-                        
-                        contentsElement = crossBin.find(contentsEl, ns)
-                        hitCount = int(contentsElement.get('coverageCount'))
-                        
-                        if len(binIndexes) != numCvps:
-                            raise ValueError("Found crossBin of bigger size than the number of coverpoints!") 
-                        
-                        tupleIndexes = tuple(binIndexes)
-                        mergeMap[tupleIndexes] = hitCount
-                        # remove crossBin
-                        mergeCrossElement.remove(crossBin)
-                    
-                    for crossBin in cross.findall(crossBinEl, ns):
-                        binIndexes = []
-                        for index in crossBin.findall(indexEl, ns):
-                            binIndexes.append(int(index.text))
-                        
-                        contentsElement = crossBin.find(contentsEl, ns)
-                        hitCount = int(contentsElement.get('coverageCount'))
-                        
-                        tupleIndexes = tuple(binIndexes)
-                        if tupleIndexes in mergeMap:
-                            mergeMap[tupleIndexes] = mergeMap[tupleIndexes] + hitCount
-                        else:
-                            mergeMap[tupleIndexes] = hitCount
-                    
-                    crossBinString = """<ucis:crossBin name="" key="0" type="default" xmlns:{0}="{1}">\n"""
-                    crossBinString = crossBinString.format(nsstr, ns[nsstr])
-                    for _ in xrange(numCvps):
-                        crossBinString += "<ucis:index>0</ucis:index>\n"
-                        
-                    crossBinString += """<ucis:contents coverageCount="0"></ucis:contents>\n"""
-                    crossBinString += "</ucis:crossBin>\n"
-                         
-                    # update crossBins element and append it to the mergeCrossElement
-                    for indexesTuple in mergeMap:
-                        # create new crossBin element to be added to the cross
-                        crossBinElement = ET.fromstring(crossBinString)
-                        print("\t\t\t" + str(indexesTuple) + " -> " + str(mergeMap[indexesTuple]))
-                        
-                        # get a generator for the index elements contained by this crossBin;
-                        # we will need to manually iterate through this generator when updating the indexes
-                        indexElementGen = iter(crossBinElement.findall(indexEl, ns))
-                        for i in xrange(len(indexesTuple)):
-                            # update index element value
-                            indexElementValue = indexesTuple[i]
-                            indexElement = indexElementGen.next()
-                            indexElement.text = str(indexElementValue)
-                            
-                        # update the contents element with the merged data
-                        contentsElement = crossBinElement.find(contentsEl, ns)
-                        contentsElement.set('coverageCount', str(mergeMap[indexesTuple]))
-                        # add the contents element to the cross in the mergeDB
-                        mergeCrossElement.append(crossBinElement)
-                        
-                    # move the user attribute element to the end of the cross
-                    userAttrElement = mergeCrossElement.find(userAttrEl, ns)
-                    mergeCrossElement.remove(userAttrElement)
-                    mergeCrossElement.append(userAttrElement)
-        print("\n")
+            # update the contents element with the merged data
+            contentsElement = crossBinElement.find('{0}:contents'.format(nsstr), ns)
+            contentsElement.set('coverageCount', str(mergeMap[indexesTuple]))
+            # add the contents element to the cross in the mergeDB
+            mergeCrossElement.append(crossBinElement)
+            
+        global ucis_db
+        # move the user attribute element to the end of the cross
+        userAttrElement = mergeCrossElement.find(ucis_db['userAttr'], ns)
+        mergeCrossElement.remove(userAttrElement)
+        mergeCrossElement.append(userAttrElement)
+        
 
 if __name__ == "__main__":
     # the search top directory is by default the execution directory 
@@ -385,39 +393,48 @@ if __name__ == "__main__":
         if mergeDB is None:
             print("First UCIS XML found; setting as base DB!")
             mergeDB = parseTree
-            continue
-        
-        # TODO: surround by try-catch and handle thrown exceptions
-        parseXML(parseRoot, mergeDB)
+        else:
+            # TODO: surround by try-catch and handle thrown exceptions
+            parseXML(parseRoot, mergeDB)
         
     
     # TODO: parse the resulted DB and change the "UCIS ID" attributes to be unique
     # can use an ElementTree tree walker for this task!
     
-    # TODO: update attributes of top level UCIS element?
-#     parentId="200" 
-#     logicalName="string" 
-#     physicalName="string" 
-#     kind="string" 
-#     testStatus="true" 
-#     simtime="1.051732E7" 
-#     timeunit="string" 
-#     runCwd="string" 
-#     cpuTime="1.051732E7" 
-#     seed="string" 
-#     cmd="string" 
-#     args="string" 
-#     compulsory="string" 
-#     date="2004-02-14T19:44:14" 
-#     userName="string" 
-#     cost="1000.00" 
-#     toolCategory="string" 
-#     ucisVersion="string" 
-#     vendorId="string" 
-#     vendorTool="string" 
-#     vendorToolVersion="string" 
-#     sameTests="42" 
-#     comment="string" 
+    """
+    FIXME: Known problems
+    1) Some Coverpoint bins can be present in one covergroup instance, but not in another.
+    In other words, different covergroup instances of the the same type can have bins which 
+    might not be present in a certain coverpoint. This creates a problem when merging crosses, 
+    as the current implementation does NOT account for this case!
+    
+    2) Top level UCIS element attributes of the resulted merged DB have to be updated!
+    ====================
+    parentId="200" 
+    logicalName="string" 
+    physicalName="string" 
+    kind="string" 
+    testStatus="true" 
+    simtime="1.051732E7" 
+    timeunit="string" 
+    runCwd="string" 
+    cpuTime="1.051732E7" 
+    seed="string" 
+    cmd="string" 
+    args="string" 
+    compulsory="string" 
+    date="2004-02-14T19:44:14" 
+    userName="string" 
+    cost="1000.00" 
+    toolCategory="string" 
+    ucisVersion="string" 
+    vendorId="string" 
+    vendorTool="string" 
+    vendorToolVersion="string" 
+    sameTests="42" 
+    comment="string"
+    ====================
+    """
     
     if not filelist:
         print("Error! No XML files found under " + search_top_dir)
