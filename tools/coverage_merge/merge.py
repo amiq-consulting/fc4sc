@@ -311,13 +311,13 @@ def parse_crosses(cgInstance, parent_query, mergeDBtree):
             else:
                 mergeMap[tupleIndexes] = hitCount
         
-        crossBinString = """<ucis:crossBin name="" key="0" type="default" xmlns:{0}="{1}">\n"""
-        crossBinString = crossBinString.format(nsstr, ns[nsstr])
+        crossBinString = """<{0}:crossBin name="" key="0" type="default" xmlns:{0}="{1}">\n"""
         for _ in range(numCvps):
-            crossBinString += "<ucis:index>0</ucis:index>\n"
+            crossBinString += "<{0}:index>0</{0}:index>\n"
             
-        crossBinString += """<ucis:contents coverageCount="0"></ucis:contents>\n"""
-        crossBinString += "</ucis:crossBin>\n"
+        crossBinString += """<{0}:contents coverageCount="0"></{0}:contents>\n"""
+        crossBinString += "</{0}:crossBin>\n"
+        crossBinString = crossBinString.format(nsstr, ns[nsstr])
              
         # update crossBins element and append it to the mergeCrossElement
         for indexesTuple in mergeMap:

@@ -144,7 +144,7 @@ private:
         return;
       }
 
-    // 1) Search if the value is in the illegal bins
+    // 2) Search if the value is in the illegal bins
     for (auto& il_bin_hit : illegal_bins) {
       try { il_bin_hit.sample(cvp_val);  }
       catch (illegal_bin_sample_exception &e) {
