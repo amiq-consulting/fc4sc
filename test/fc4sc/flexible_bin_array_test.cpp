@@ -26,16 +26,15 @@
 #include "gtest/gtest.h"
 #include <utility> // for std::swap
 
-auto fibonacci_intervals = [](size_t N) -> std::vector<fc4sc::interval_t<int>> {
-  // start with 1 and 2, so that we don't have repeating elements
-  int f0 = 1, f1 = 2;
+auto increasing_intervals = [](size_t start, size_t N, size_t step) -> std::vector<fc4sc::interval_t<int>> {
   // resulting vector containing all
-  std::vector<fc4sc::interval_t<int>> result(N, interval(f0, f0));
-
-  for (size_t i = 1; i < N; i++) {
-    std::swap(f0, f1);
-    result[i] = interval(f0, f0);
-    f1 += f0;
+  std::vector<fc4sc::interval_t<int>> result;
+  size_t orig_step = step;
+  size_t last_start = start;
+  for (size_t i = 0; i < N; i++) {
+      result.push_back(interval(last_start, last_start + (i+1)*step));
+      last_start = last_start + (i+1)*step + 1;
+      step += orig_step;
   }
   return result;
 };
@@ -62,7 +61,8 @@ public:
   COVERPOINT(int, bin_array_cvp, val) {
     // this coverpoint should contain 5 different bins with values:
     // 1, 2, 3, 5, 8
-    bin_array<int>("fibonacci", fibonacci_intervals(5))
+    bin_array<int>("fibonacci", fibonacci(5)),
+    bin_array<int>("intervals", increasing_intervals(0, 5, 3))
   };
 
 };
