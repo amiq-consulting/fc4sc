@@ -120,9 +120,6 @@ template<typename forbidden, typename first> struct forbid_type<forbidden, first
  */
 namespace fc4sc
 {
-template<typename T>
-using interval_t = std::pair<T, T>;
-
 using cvp_metadata_t = std::tuple<void*, std::string, std::string>;
 
 typedef enum fc4sc_format {

@@ -76,8 +76,6 @@ private:
   // the one which receives a name as the first argument. This forces the user
   // to give a name for each instantiated bin.
 
-  /*! Default Constructor */
-  bin() = default;
   /*!
    *  \brief Takes a value and wraps it in a pair
    *  \param value Value associated with the bin
@@ -95,13 +93,16 @@ private:
    */
   template <typename... Args>
   bin(interval_t<T> interval, Args... args) noexcept : bin(args...) {
-    if (interval.first > interval.second) {
-      std::swap(interval.first, interval.second);
-    }
     intervals.push_back(interval);
+    if (intervals.back().first > intervals.back().second) {
+      std::swap(intervals.back().first, intervals.back().second);
+    }
   }
 
 protected:
+  /*! Default Constructor */
+  bin() = default;
+
   void print_xml_header(std::ostream &stream, const std::string &type) const
   {
     stream << "<ucis:coverpointBin name=\"" << name << "\" \n";
@@ -234,6 +235,7 @@ protected:
     cvp.illegal_bins.push_back(*this);
   }
 
+  illegal_bin() = delete;
 public:
   /*!
    *  \brief Forward to parent constructor
@@ -299,6 +301,8 @@ protected:
   {
     cvp.ignore_bins.push_back(*this);
   }
+
+  ignore_bin() = delete;
 public:
   /*!
    *  \brief Forward to parent constructor
@@ -320,11 +324,14 @@ protected:
   {
     cvp.bin_arrays.push_back(*this);
   }
-public:
-  std::vector<uint64_t> split_hits;
-  uint64_t count;
+  bool sparse = false;
 
-  explicit bin_array(const std::string &name, int count, interval_t<T> interval) :
+  bin_array() = delete;
+public:
+  uint64_t count;
+  std::vector<uint64_t> split_hits;
+
+  explicit bin_array(const std::string &name, int count, interval_t<T> interval) noexcept :
       bin<T>(name, interval), count(count)
   {
     auto intv = this->intervals[0];
@@ -332,6 +339,38 @@ public:
 
     if (this->count > interval_length)
       this->count = 1;
+
+    split_hits.resize(this->count);
+  }
+
+  /*!
+   * \brief Constructs an bin_array from a vector of intervals where each
+   * interval will be nested by a bin
+   */
+  explicit bin_array(const std::string &name, std::vector<interval_t<T>>&& intvs) noexcept :
+    count(intvs.size()), sparse(true)
+  {
+    this->name = name;
+    // TODO: this produces Conditional jump or move depends on uninitialised value(s)
+    split_hits.resize(this->count);
+    this->intervals = std::move(intvs);
+  }
+
+  /*!
+   * \brief Constructs an bin_array from a vector of values where each
+   * values will be nested by a bin
+   */
+  explicit bin_array(const std::string &name, const std::vector<T>& intvs) noexcept :
+    count(intvs.size()), sparse(true)
+  {
+    // TODO: test this constructor
+    this->name = name;
+    this->intervals.clear();
+    this->intervals.reserve(this->count);
+    // transform each value in the input vector to an interval
+    std::transform(intvs.begin(), intvs.end(),
+                   std::back_inserter(this->intervals),
+                   [](const T& v) { return fc4sc::interval(v,v); });
 
     split_hits.resize(this->count);
   }
@@ -348,6 +387,7 @@ public:
    */
   uint64_t sample(const T &val)
   {
+    // TODO: update with behavior for sparse bin array
     for (auto &interval : this->intervals)
       if (val >= interval.first && val <= interval.second)
       {
@@ -386,7 +426,6 @@ public:
   {
     T start = this->intervals[0].first;
     T stop = this->intervals[0].second;
-
     T step = (stop - start + 1) / count;
 
     for (size_t i = 0; i < count; ++i)
@@ -394,20 +433,22 @@ public:
       stream << "<ucis:coverpointBin name=\"" << this->name << "_" << i+1 << "\" \n";
       stream << "type=\"" << "default" << "\" "
              << "alias=\"" << this->split_hits[i] << "\"" << ">\n";
+      if (!sparse) {
+        print_range(stream, start, stop, step, i);
+            // Print hits for each range
+            stream
+            << "<ucis:contents "
+            << "coverageCount=\"" << this->split_hits[i] << "\""
+            << ">";
+        stream << "</ucis:contents>\n";
 
-      print_range(stream, start, stop, step, i);
-          // Print hits for each range
-          stream
-          << "<ucis:contents "
-          << "coverageCount=\"" << this->split_hits[i] << "\""
-          << ">";
-      stream << "</ucis:contents>\n";
-
+        start = start + step;
+      }
+      else {
+        // TODO: update with behavior for sparse bin array
+      }
       stream << "</ucis:range>\n\n";
-
       stream << "</ucis:coverpointBin>\n";
-
-      start = start + step;
     }
   }
 };

@@ -28,28 +28,25 @@
 class bin_array_test : public covergroup {
 public:
 
- // Must call UTIL somewhere in constructors to register new cvg
   CG_CONS(bin_array_test) {};
 
-  // Must define sample
-  int SAMPLE_POINT(sample_point1,cvp1);
-  int SAMPLE_POINT(sample_point2,cvp2);
+  int sample_point1 = 0;
+  int sample_point2 = 0;
 
   void sample(const int& x) {
     this->sample_point1 = x;
     this->sample_point2 = x;
-
-    covergroup::sample();
+    sample();
   }
 
- // coverpoint with 10 one value bins
-  coverpoint<int> cvp1 = coverpoint<int> (this,
-    bin_array<int>("bin_arr_1", 5, interval(1,5))
-  );
+  // coverpoint with 10 one value bins
+  COVERPOINT(int, cvp1, sample_point1) {
+    bin_array<int>("[1:5]", 5, interval(1,5))
+  };
 
-  coverpoint<int> cvp2 = coverpoint<int> (this,
+  COVERPOINT(int, cvp2, sample_point1) {
     bin_array<int>("bin_arr_2", 10, interval(1,5))
-  );
+  };
 
 };
 
@@ -110,5 +107,5 @@ TEST(bin_array, edge_cases) {
   EXPECT_EQ(cvg.cvp2.get_inst_coverage(hit,total), 100);
   EXPECT_EQ(total, 1);
   EXPECT_EQ(hit, 1);
-
+  fc4sc::global::coverage_save("bin_array_test.xml");
 }

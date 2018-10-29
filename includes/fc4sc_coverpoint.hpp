@@ -189,7 +189,7 @@ private:
   {
     if (!n.is_empty())
     {
-      reverse(n.intervals.begin(), n.intervals.end());
+      std::reverse(n.intervals.begin(), n.intervals.end());
       bins.push_back(n);
     }
   }
@@ -209,10 +209,9 @@ private:
   template <typename... Args>
   coverpoint(illegal_bin<T> n, Args... args) : coverpoint(args...)
   {
-
     if (!n.is_empty())
     {
-      reverse(n.intervals.begin(), n.intervals.end());
+      std::reverse(n.intervals.begin(), n.intervals.end());
       illegal_bins.push_back(n);
     }
   }
@@ -225,7 +224,7 @@ private:
   {
     if (!n.is_empty())
     {
-      reverse(n.intervals.begin(), n.intervals.end());
+      std::reverse(n.intervals.begin(), n.intervals.end());
       ignore_bins.push_back(n);
     }
   }
