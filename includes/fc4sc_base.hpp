@@ -154,16 +154,11 @@ public:
    * \param stream Where to print
    */
   virtual void to_xml(std::ostream &stream) const = 0;
-
   /*!
    * \brief Returns total number of hits
    * \returns number of times the sampled value was in the bin
    */
   virtual uint64_t get_hitcount() const = 0;
-  // {
-  //   return hits;
-  // }
-
   /*! Destructor */
   virtual ~bin_base(){}
 };

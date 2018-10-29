@@ -62,13 +62,12 @@ public:
   COVERPOINT(int, bin_array_cvp, val) {
     // this coverpoint should contain 5 different bins with values:
     // 1, 2, 3, 5, 8
-    bin_array<int>("bin_arr_1", fibonacci_intervals(5))
+    bin_array<int>("fibonacci", fibonacci_intervals(5))
   };
 
 };
 
 TEST(flexible_bin_array, base) {
   flexible_bin_array_cvg cvg;
-  // TODO: test behavior
-//  fc4sc::global::coverage_save("flexible_bin_array_test.xml");
+  fc4sc::global::coverage_save("flexible_bin_array_test.xml");
 }
