@@ -51,47 +51,31 @@ public:
 };
 
 TEST(bin_array, edge_cases) {
-
   bin_array_test cvg;
-
-  //cvp1 should have 5 bins -> {1}, {2}, {3}, {4} and {5}
   cvg.cvp2.stop();
 
+  //cvp1 should have 5 bins -> {1}, {2}, {3}, {4} and {5}
+  int num_bins = 5;
   int total = -1;
   int hit = -1;
+
   EXPECT_EQ(cvg.cvp1.get_inst_coverage(hit, total), 0);
-  EXPECT_EQ(total, 5);
+  EXPECT_EQ(total, num_bins);
   EXPECT_EQ(hit, 0);
 
-  cvg.sample(1);
-  EXPECT_EQ(cvg.cvp1.get_inst_coverage(hit, total), 20);
-  EXPECT_EQ(total, 5);
-  EXPECT_EQ(hit, 1);
+  for (int i = 1; i <= 5; i++) {
+    cvg.sample(i);
+    EXPECT_EQ(cvg.cvp1.get_inst_coverage(hit, total), (100/num_bins) * i);
+    EXPECT_EQ(total, num_bins);
+    EXPECT_EQ(hit, i);
 
-  cvg.sample(6);
-  EXPECT_EQ(cvg.cvp1.get_inst_coverage(hit, total), 20);
-  EXPECT_EQ(total, 5);
-  EXPECT_EQ(hit, 1);
-
-  cvg.sample(2);
-  EXPECT_EQ(cvg.cvp1.get_inst_coverage(hit, total), 40);
-  EXPECT_EQ(total, 5);
-  EXPECT_EQ(hit, 2);
-
-  cvg.sample(3);
-  EXPECT_EQ(cvg.cvp1.get_inst_coverage(hit, total), 60);
-  EXPECT_EQ(total, 5);
-  EXPECT_EQ(hit, 3);
-
-  cvg.sample(4);
-  EXPECT_EQ(cvg.cvp1.get_inst_coverage(hit, total), 80);
-  EXPECT_EQ(total, 5);
-  EXPECT_EQ(hit, 4);
-
-  cvg.sample(5);
-  EXPECT_EQ(cvg.cvp1.get_inst_coverage(hit, total), 100);
-  EXPECT_EQ(total, 5);
-  EXPECT_EQ(hit, 5);
+    if (i == 2) {
+      cvg.sample(6);
+      EXPECT_EQ(cvg.cvp1.get_inst_coverage(hit, total), (100/num_bins) * i);
+      EXPECT_EQ(total, num_bins);
+      EXPECT_EQ(hit, i);
+    }
+  }
 
   // cvp2 should have 1 bin -> {[1:5]} since length (which is 10) > interval ( [1:5])
   cvg.cvp2.start();
@@ -107,5 +91,4 @@ TEST(bin_array, edge_cases) {
   EXPECT_EQ(cvg.cvp2.get_inst_coverage(hit,total), 100);
   EXPECT_EQ(total, 1);
   EXPECT_EQ(hit, 1);
-  fc4sc::global::coverage_save("bin_array_test.xml");
 }

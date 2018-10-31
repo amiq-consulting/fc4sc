@@ -322,38 +322,67 @@ protected:
   /* Virtual function used to register this bin inside a coverpoint */
   virtual void add_to_cvp(coverpoint<T> &cvp) const override
   {
-    cvp.bin_arrays.push_back(*this);
+    if (this->sparse) {
+      // bin array was defined by using a vector of intervals or values
+      // create a new bin for each value/interval and add it to the coverpoint
+      std::stringstream ss;
+      for (int i = 0; i < this->intervals.size(); ++i) {
+        ss << this->name << "_" << i;
+        cvp.bins.push_back(bin<T>(ss.str(), this->intervals[i]));
+        ss.str(std::string()); // clear the stringstream
+      }
+    }
+    else {
+      // bin array was defined by using an interval which needs to be split into
+      // multiple pieces. The interval is found in the this->intervals[0]
+      T interval_length = (this->intervals[0].second - this->intervals[0].first) + 1;
+      if (this->count > interval_length) {
+        // This bin array interval cannot be split into pieces. Add a single
+        // bin containing the whole interval to the coverpoint. We can simply
+        // use this object since it already matches the bin that we need!
+        cvp.bins.push_back(*this);
+      }
+      else {
+        std::stringstream ss;
+        // This bin array interval must be split into pieces.
+        T start = this->intervals[0].first;
+        T stop = this->intervals[0].second;
+        T interval_len = (interval_length + 1) / this->count;
+
+        for (size_t i = 0; i < this->count; ++i) {
+          ss << this->name << "_" << i;
+          // the last interval, will contain all the extra elements
+          T end = (i == (this->count - 1)) ? stop : start + (interval_len - 1);
+          cvp.bins.push_back(bin<T>(ss.str(), interval(start, end)));
+          start = start + interval_len;
+          ss.str(std::string()); // clear the stringstream
+        }
+      }
+    }
   }
+
+  uint64_t count;
   bool sparse = false;
 
   bin_array() = delete;
+
 public:
-  uint64_t count;
-  std::vector<uint64_t> split_hits;
-
-  explicit bin_array(const std::string &name, int count, interval_t<T> interval) noexcept :
-      bin<T>(name, interval), count(count)
-  {
-    auto intv = this->intervals[0];
-    uint64_t interval_length = (intv.second - intv.first) + 1;
-
-    if (this->count > interval_length)
-      this->count = 1;
-
-    split_hits.resize(this->count);
-  }
+  /*!
+   * \brief Constructs an bin_array which will split an interval into multiple
+   * equal parts. The number of sub-intervals is specified via the count argument
+   */
+  explicit bin_array(const std::string &name, uint64_t count, interval_t<T> interval) noexcept :
+    bin<T>(name, interval), count(count), sparse(false) {}
 
   /*!
    * \brief Constructs an bin_array from a vector of intervals where each
    * interval will be nested by a bin
    */
-  explicit bin_array(const std::string &name, const std::vector<interval_t<T>>& intvs) noexcept :
+  explicit bin_array(const std::string &name, std::vector<interval_t<T>>&& intvs) noexcept :
     count(intvs.size()), sparse(true)
   {
     this->name = name;
-    this->split_hits.resize(this->count);
-    this->intervals = intvs;
-//    this->intervals = std::move(intvs);
+    this->intervals = std::move(intvs);
   }
 
   /*!
@@ -363,7 +392,6 @@ public:
   explicit bin_array(const std::string &name, const std::vector<T>& intvs) noexcept :
     count(intvs.size()), sparse(true)
   {
-    // TODO: test this constructor
     this->name = name;
     this->intervals.clear();
     this->intervals.reserve(this->count);
@@ -371,74 +399,72 @@ public:
     std::transform(intvs.begin(), intvs.end(),
                    std::back_inserter(this->intervals),
                    [](const T& v) { return fc4sc::interval(v,v); });
-
-    split_hits.resize(this->count);
   }
 
   virtual ~bin_array() = default;
 
-  uint64_t size() {
-    return this->count;
-  }
+//  uint64_t size() {
+//    return this->count;
+//  }
 
-  /*!
-   * \brief Same as bin::sample(const T& val)
-   *
-   */
-  uint64_t sample(const T &val)
-  {
-    uint64_t bin_index = 0;
-    for (auto &interval : this->intervals) {
-      if (val >= interval.first && val <= interval.second)
-      {
-        if (!sparse) {
-          bin_index = (val - interval.first) * count / (interval.second - interval.first);
-          if (bin_index == count)
-            bin_index--;
-        }
-        this->split_hits[bin_index]++;
-        return bin_index + 1;
-      }
-      bin_index++;
-    }
-    return 0;
-  }
-
-  virtual void to_xml(std::ostream &stream) const
-  {
-    T start = this->intervals[0].first;
-    T stop = this->intervals[0].second;
-    T step = (stop - start + 1) / count;
-
-    for (size_t i = 0; i < count; ++i)
-    {
-      stream << "<ucis:coverpointBin name=\"" << this->name << "_" << i+1 << "\" \n";
-      stream << "type=\"" << "default" << "\" "
-             << "alias=\"" << this->split_hits[i] << "\"" << ">\n";
-
-      if (!sparse) {
-        T end = (i == (count - 1)) ? stop : start + step;
-        stream << "<ucis:range \n"
-               << "from=\"" << start << "\" \n";
-        stream << "to =\"" << end << "\"\n"
-               << ">\n";
-        start = start + step;
-      }
-      else {
-        stream << "<ucis:range \n"
-               << "from=\"" << this->intervals[i].first << "\" \n";
-        stream << "to =\"" << this->intervals[i].second << "\"\n"
-               << ">\n";
-      }
-      stream // Print hits for each range
-        << "<ucis:contents "
-        << "coverageCount=\"" << this->split_hits[i] << "\""
-        << ">";
-      stream << "</ucis:contents>\n";
-      stream << "</ucis:range>\n\n";
-      stream << "</ucis:coverpointBin>\n";
-    }
-  }
+//  /*!
+//   * \brief Same as bin::sample(const T& val)
+//   *
+//   */
+//  uint64_t sample(const T &val)
+//  {
+//    uint64_t bin_index = 0;
+//    for (auto &interval : this->intervals) {
+//      if (val >= interval.first && val <= interval.second)
+//      {
+//        if (!sparse) {
+//          bin_index = (val - interval.first) * count / (interval.second - interval.first);
+//          if (bin_index == count)
+//            bin_index--;
+//        }
+//        this->split_hits[bin_index]++;
+//        return bin_index + 1;
+//      }
+//      bin_index++;
+//    }
+//    return 0;
+//  }
+//
+//  virtual void to_xml(std::ostream &stream) const
+//  {
+//    T start = this->intervals[0].first;
+//    T stop = this->intervals[0].second;
+//    T step = (stop - start + 1) / count;
+//
+//    for (size_t i = 0; i < count; ++i)
+//    {
+//      stream << "<ucis:coverpointBin name=\"" << this->name << "_" << i+1 << "\" \n";
+//      stream << "type=\"" << "default" << "\" "
+//             << "alias=\"" << this->split_hits[i] << "\"" << ">\n";
+//
+//      if (!sparse) {
+//        T end = (i == (count - 1)) ? stop : start + step;
+//        stream << "<ucis:range \n"
+//               << "from=\"" << start << "\" \n";
+//        stream << "to =\"" << end << "\"\n"
+//               << ">\n";
+//        start = start + step;
+//      }
+//      else {
+//        stream << "<ucis:range \n"
+//               << "from=\"" << this->intervals[i].first << "\" \n";
+//        stream << "to =\"" << this->intervals[i].second << "\"\n"
+//               << ">\n";
+//      }
+//      stream // Print hits for each range
+//        << "<ucis:contents "
+//        << "coverageCount=\"" << this->split_hits[i] << "\""
+//        << ">";
+//      stream << "</ucis:contents>\n";
+//      stream << "</ucis:range>\n\n";
+//      stream << "</ucis:coverpointBin>\n";
+//    }
+//  }
 };
 
 /*

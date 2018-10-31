@@ -102,8 +102,6 @@ private:
 
   /*! bins contained in this coverpoint */
   std::vector<bin<T>> bins;
-  /*! bin_arrays contained in this coverpoint */
-  std::vector<bin_array<T>> bin_arrays;
   /*! Illegal bins contained in this coverpoint */
   std::vector<illegal_bin<T>> illegal_bins;
   /*! Ignore bins contained in this coverpoint */
@@ -133,6 +131,7 @@ private:
     return;
 #endif
     if (!collect) return;
+    bool cvp_was_hit = false;
 
     // 1) Search if the value is in the ignore bins
     for (auto& ig_bin_it : ignore_bins)
@@ -151,31 +150,20 @@ private:
       }
     }
 
-    // Sample bin arrays first => higher hit chance
-    uint64_t start = bins.size();
-    for (size_t i = 0; i < bin_arrays.size(); ++i) {
-
-      uint64_t hit = bin_arrays[i].sample(cvp_val);
-      if (hit) {
-        this->last_bin_index_hit = start + hit - 1;
-        this->last_sample_success = 1;
-        return;
-      }
-
-      start += bin_arrays[i].count;
-    }
-
-    // Sample default bins
+    // Sample regular bins
     for (size_t i = 0; i < bins.size(); ++i) {
       if (bins[i].sample(cvp_val)) {
         this->last_bin_index_hit = i;
         this->last_sample_success = 1;
-        return;
+        cvp_was_hit = true;
+        if (this->stop_sample_on_first_bin_hit) return;
       }
     }
   
-    this->last_sample_success = 0;
-    misses++;
+    if (!cvp_was_hit) {
+      this->last_sample_success = 0;
+      misses++;
+    }
   }
 
   /*! Default constructor */
@@ -195,12 +183,12 @@ private:
   }
 
   /*!
-   *  \brief Constructor that registers a new illegal bin
+   *  \brief Constructor that a bin array
    */
   template < typename... Args>
   coverpoint(bin_array<T> n, Args... args) : coverpoint(args...)
   {
-    bin_arrays.push_back(n);
+    n.add_to_cvp(*this);
   }
 
   /*!
@@ -252,7 +240,6 @@ public:
      * syntax work!
      */
     this->bins = std::move(rh.bins);
-    this->bin_arrays = std::move(rh.bin_arrays);
     this->ignore_bins = std::move(rh.ignore_bins);
     this->illegal_bins = std::move(rh.illegal_bins);
     return *this;
@@ -288,13 +275,10 @@ public:
   }
 
   /*!
-   *  Retrieves the number of default bins
+   *  Retrieves the number of regular bins
    */
   uint64_t size() {
-    uint64_t total_size = 0;
-    for (auto arr : bin_arrays)
-      total_size += arr.size();
-    return total_size + bins.size();
+    return bins.size();
   }
 
   void sample() 
@@ -314,30 +298,14 @@ public:
    */
   double get_inst_coverage() const 
   {
+    if (bins.empty()) // no bins defined
+      return (option.weight == 0) ? 100 : 0;
+
     double res = 0;
-
-    if (bins.empty() && bin_arrays.empty()) // no bins or bin arrays defined
-    {
-      if (option.weight == 0)
-        return 100;
-      else
-        return 0;
-    }
-
     for (auto &bin : bins)
       res += (bin.get_hitcount() >= option.at_least);
 
-    uint64_t extra_bins = 0;
-    for (auto &bin_array : bin_arrays) {
-	std::vector<uint64_t> hits = bin_array.split_hits;
-
-      for (uint64_t hitcount : hits) 
-        res += (hitcount >= option.at_least);
-
-      extra_bins += bin_array.count;
-    }
-
-    double real = res * 100 / (bins.size() + extra_bins);
+    double real = res * 100 / bins.size();
 
     return (real >= this->option.goal) ? 100 : real;
   }
@@ -350,41 +318,21 @@ public:
    */
   double get_inst_coverage(int &covered, int &total) const 
   {
-
     double res = 0;
-
     covered = 0;
     total = bins.size();
 
-    if (!bins.size() && !bin_arrays.size())
+    if (!bins.size())
     {
-
       total = 0;
-
-      if (option.weight == 0)
-        return 100;
-      else
-        return 0;
+      return (option.weight == 0) ? 100 : 0;
     }
 
     for (auto &bin : bins)
       res += (bin.get_hitcount() >= option.at_least);
 
-    uint64_t extra_bins = 0;
-    for (auto &bin_array : bin_arrays) {
-	std::vector<uint64_t> hits = bin_array.split_hits;
-
-      for (uint64_t hitcount : hits) 
-        res += (hitcount >= option.at_least);
-
-      extra_bins += bin_array.count;
-    }
-
-    total += extra_bins;
     covered = res;
-
     double real = res * 100 / total;
-
     return (real >= this->option.goal) ? 100 : real;
   }
 
@@ -431,10 +379,6 @@ public:
   
     for (auto &bin : bins)
       bin.to_xml(stream);
-
-    for (auto& bin_arr : bin_arrays)
-      bin_arr.to_xml(stream); 
-
     for (auto &bin : illegal_bins)
       bin.to_xml(stream);
 

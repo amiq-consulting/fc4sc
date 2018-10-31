@@ -65,9 +65,16 @@ public:
     bin_array<int>("intervals", increasing_intervals(0, 5, 3))
   };
 
+  void sample(int val) {
+    this->val = val; sample();
+  }
 };
 
 TEST(flexible_bin_array, base) {
   flexible_bin_array_cvg cvg;
-  fc4sc::global::coverage_save("flexible_bin_array_test.xml");
+  cvg.sample(8);
+  cvg.sample(18);
+  cvg.sample(3);
+  // TODO: add testcase checks
+  //fc4sc::global::coverage_save("flexible_bin_array_test.xml");
 }

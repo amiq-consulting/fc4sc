@@ -227,6 +227,7 @@ public:
 class cvp_base : public api_base
 {
 public:
+  bool stop_sample_on_first_bin_hit = false;
   uint last_bin_index_hit;
   uint last_sample_success;
 
