@@ -54,12 +54,13 @@ auto fibonacci = [](size_t N) -> std::vector<int> {
 };
 
 class flexible_bin_array_cvg: public covergroup {
-public:
+private:
   int val = 0;
 
+public:
   CG_CONS(flexible_bin_array_cvg) {};
   COVERPOINT(int, bin_array_cvp, val) {
-    // this coverpoint should contain 5 different bins with values:
+    // this bin_array contains 5 different bins for values:
     // 1, 2, 3, 5, 8
     bin_array<int>("fibonacci", fibonacci(5)),
     bin_array<int>("intervals", increasing_intervals(0, 5, 3))
@@ -71,10 +72,18 @@ public:
 };
 
 TEST(flexible_bin_array, base) {
+  // how much each bin weights in the overall coverage of the covergroup
+  double bin_hit_weight = (100/10); // total 10 bins
+
   flexible_bin_array_cvg cvg;
-  cvg.sample(8);
-  cvg.sample(18);
-  cvg.sample(3);
-  // TODO: add testcase checks
-  //fc4sc::global::coverage_save("flexible_bin_array_test.xml");
+  EXPECT_EQ(cvg.get_inst_coverage(), 0);
+
+  cvg.sample(8);  // hits 2 bins
+  EXPECT_EQ(cvg.get_inst_coverage(), 2 * bin_hit_weight);
+
+  cvg.sample(18); // hits 1 bin
+  EXPECT_EQ(cvg.get_inst_coverage(), 3 * bin_hit_weight);
+
+  cvg.sample(3);  // hits 2 bins
+  EXPECT_EQ(cvg.get_inst_coverage(), 5 * bin_hit_weight);
 }
