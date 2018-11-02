@@ -51,12 +51,11 @@ namespace fc4sc
 template <typename... Args>
 class cross : public cvp_base
 {
-
   /*! Sampling switch */
   bool collect = true;
 
   /*! Total number of bins in this cross */
-  uint64_t total_bins = 0;
+  uint64_t total_coverpoints = 0;
 
   /*!
    * \brief Helper function to recursively determine number of bins in a cross
@@ -139,7 +138,7 @@ public:
   {
     n->cvps.push_back(this);
 
-    total_bins = get_size(args...);
+    total_coverpoints = get_size(args...);
     cvps_vec = std::vector<cvp_base*>{args...};
 
     std::reverse(cvps_vec.begin(), cvps_vec.end());
@@ -190,15 +189,10 @@ public:
   {
 
     int covered = 0;
-    int total = total_bins;
+    int total = total_coverpoints;
 
     if (total == 0)
-    {
-      if (option.weight == 0)
-        return 100;
-      else
-        return 0;
-    }
+      return (this->option.weight == 0) ? 100 : 0;
 
     for (auto it : bins)
     {
@@ -218,7 +212,7 @@ public:
    */
   double get_inst_coverage(int &covered, int &total) const 
   {
-    total = total_bins;
+    total = total_coverpoints;
     covered = 0;
 
     for (auto it : bins)
@@ -228,12 +222,7 @@ public:
     }
 
     if (total == 0)
-    {
-      if (option.weight == 0)
-        return 100;
-      else
-        return 0;
-    }
+      return (this->option.weight == 0) ? 100 : 0;
 
     return covered / total;
   }
@@ -307,7 +296,7 @@ public:
     }
 
     stream << "<ucis:userAttr \n";
-    stream << "key=\"" << total_bins << "\" \n";
+    stream << "key=\"" << total_coverpoints << "\" \n";
     stream << "type=\""
            << "int"
            << "\" \n";

@@ -91,7 +91,7 @@ template<typename forbidden, typename first> struct forbid_type<forbidden, first
 /*
  * Macro used to define and automatically register a coverpoint inside a covergroup.
  * The macro accepts 3 or 4 arguments in the following order:
- * 1) Type: used for the values of the bins declared in the coveroint
+ * 1) Type: used for the values of the bins declared in the coverpoint
  * 2) Name: the name of the coverpoint
  * 3) Sample Expression: the expression that will be used for sampling this coverpoint
  * whenever the covergroup is sampled (the type has to be the same as Type argument)
@@ -120,9 +120,6 @@ template<typename forbidden, typename first> struct forbid_type<forbidden, first
  */
 namespace fc4sc
 {
-template<typename T>
-using interval_t = std::pair<T, T>;
-
 using cvp_metadata_t = std::tuple<void*, std::string, std::string>;
 
 typedef enum fc4sc_format {
@@ -157,16 +154,11 @@ public:
    * \param stream Where to print
    */
   virtual void to_xml(std::ostream &stream) const = 0;
-
   /*!
    * \brief Returns total number of hits
    * \returns number of times the sampled value was in the bin
    */
   virtual uint64_t get_hitcount() const = 0;
-  // {
-  //   return hits;
-  // }
-
   /*! Destructor */
   virtual ~bin_base(){}
 };
@@ -234,6 +226,9 @@ public:
  */
 class cvp_base : public api_base
 {
+protected:
+  bool stop_sample_on_first_bin_hit = false;
+
 public:
   uint last_bin_index_hit;
   uint last_sample_success;
@@ -244,7 +239,7 @@ public:
   /*! Type specific options */
   cvp_type_option type_option;
 
-  /*! Number of samples not found in any bin */
+  /*! Number of sample misses (no bin hit)*/
   uint64_t misses = 0;
 
   /*! Destructor */
@@ -323,7 +318,6 @@ public:
     this->cvg_name = cvg_name;
     update_message();
   }
-
 
   const char * what () const throw () {
     return message.c_str();

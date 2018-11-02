@@ -38,6 +38,13 @@
 #ifndef FC4SC_HPP
 #define FC4SC_HPP
 
+#include <utility> // std::pair
+
+namespace fc4sc {
+  template<typename T>
+  using interval_t = std::pair<T, T>;
+};
+
 #include "fc4sc_base.hpp"
 #include "fc4sc_intervals.hpp"
 #include "fc4sc_options.hpp"

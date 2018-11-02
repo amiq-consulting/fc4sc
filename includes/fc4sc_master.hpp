@@ -333,7 +333,6 @@ class global
 
       if (cv_data.size() == 0) return 100;
       if (weights == 0)        return 0;
-
       return res / weights;
     };
 
@@ -351,20 +350,12 @@ class global
 
       for (auto it : cvgs)
       {
-
         res += it->get_inst_coverage() * it->option.weight;
-
         weights += it->option.weight;
       }
 
       if (weights == 0 || cvgs.size() == 0 || res == 0)
-      {
-
-        if (cv_data[type].type_option.weight != 0)
-          return 0;
-        else
-          return 100;
-      }
+        return (cv_data[type].type_option.weight == 0) ? 100 : 0;
 
       double real = res / weights;
       return (real >= cv_data[type].type_option.goal) ? 100 : real;
@@ -399,14 +390,9 @@ class global
 
       if (weights == 0 || cvgs.size() == 0 || res == 0 || total_bins == 0)
       {
-
         hit_bins = 0;
         total_bins = 0;
-
-        if (cv_data[type].type_option.weight != 0)
-          return 0;
-        else
-          return 100;
+        return (cv_data[type].type_option.weight == 0) ? 100 : 0;
       }
 
       double real = res / weights;
