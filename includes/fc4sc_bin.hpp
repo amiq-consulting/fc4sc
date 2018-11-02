@@ -327,7 +327,7 @@ protected:
       // create a new bin for each value/interval and add it to the coverpoint
       std::stringstream ss;
       for (int i = 0; i < this->intervals.size(); ++i) {
-        ss << this->name << "_" << i;
+        ss << this->name << "[" << i << "]";
         cvp.bins.push_back(bin<T>(ss.str(), this->intervals[i]));
         ss.str(std::string()); // clear the stringstream
       }
@@ -350,7 +350,7 @@ protected:
         T interval_len = (interval_length + 1) / this->count;
 
         for (size_t i = 0; i < this->count; ++i) {
-          ss << this->name << "_" << i;
+          ss << this->name << "[" << i << "]";
           // the last interval, will contain all the extra elements
           T end = (i == (this->count - 1)) ? stop : start + (interval_len - 1);
           cvp.bins.push_back(bin<T>(ss.str(), interval(start, end)));
@@ -402,69 +402,6 @@ public:
   }
 
   virtual ~bin_array() = default;
-
-//  uint64_t size() {
-//    return this->count;
-//  }
-
-//  /*!
-//   * \brief Same as bin::sample(const T& val)
-//   *
-//   */
-//  uint64_t sample(const T &val)
-//  {
-//    uint64_t bin_index = 0;
-//    for (auto &interval : this->intervals) {
-//      if (val >= interval.first && val <= interval.second)
-//      {
-//        if (!sparse) {
-//          bin_index = (val - interval.first) * count / (interval.second - interval.first);
-//          if (bin_index == count)
-//            bin_index--;
-//        }
-//        this->split_hits[bin_index]++;
-//        return bin_index + 1;
-//      }
-//      bin_index++;
-//    }
-//    return 0;
-//  }
-//
-//  virtual void to_xml(std::ostream &stream) const
-//  {
-//    T start = this->intervals[0].first;
-//    T stop = this->intervals[0].second;
-//    T step = (stop - start + 1) / count;
-//
-//    for (size_t i = 0; i < count; ++i)
-//    {
-//      stream << "<ucis:coverpointBin name=\"" << this->name << "_" << i+1 << "\" \n";
-//      stream << "type=\"" << "default" << "\" "
-//             << "alias=\"" << this->split_hits[i] << "\"" << ">\n";
-//
-//      if (!sparse) {
-//        T end = (i == (count - 1)) ? stop : start + step;
-//        stream << "<ucis:range \n"
-//               << "from=\"" << start << "\" \n";
-//        stream << "to =\"" << end << "\"\n"
-//               << ">\n";
-//        start = start + step;
-//      }
-//      else {
-//        stream << "<ucis:range \n"
-//               << "from=\"" << this->intervals[i].first << "\" \n";
-//        stream << "to =\"" << this->intervals[i].second << "\"\n"
-//               << ">\n";
-//      }
-//      stream // Print hits for each range
-//        << "<ucis:contents "
-//        << "coverageCount=\"" << this->split_hits[i] << "\""
-//        << ">";
-//      stream << "</ucis:contents>\n";
-//      stream << "</ucis:range>\n\n";
-//      stream << "</ucis:coverpointBin>\n";
-//    }
-//  }
 };
 
 /*
