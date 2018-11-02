@@ -91,7 +91,7 @@ template<typename forbidden, typename first> struct forbid_type<forbidden, first
 /*
  * Macro used to define and automatically register a coverpoint inside a covergroup.
  * The macro accepts 3 or 4 arguments in the following order:
- * 1) Type: used for the values of the bins declared in the coveroint
+ * 1) Type: used for the values of the bins declared in the coverpoint
  * 2) Name: the name of the coverpoint
  * 3) Sample Expression: the expression that will be used for sampling this coverpoint
  * whenever the covergroup is sampled (the type has to be the same as Type argument)
@@ -226,8 +226,10 @@ public:
  */
 class cvp_base : public api_base
 {
-public:
+protected:
   bool stop_sample_on_first_bin_hit = false;
+
+public:
   uint last_bin_index_hit;
   uint last_sample_success;
 
@@ -237,7 +239,7 @@ public:
   /*! Type specific options */
   cvp_type_option type_option;
 
-  /*! Number of samples not found in any bin */
+  /*! Number of sample misses (no bin hit)*/
   uint64_t misses = 0;
 
   /*! Destructor */
@@ -316,7 +318,6 @@ public:
     this->cvg_name = cvg_name;
     update_message();
   }
-
 
   const char * what () const throw () {
     return message.c_str();
