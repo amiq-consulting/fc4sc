@@ -222,34 +222,46 @@ class UCIS_DB_Parser:
     def findall_ucis_children(self, element, subElementName):
         return element.findall('{0}:{1}'.format(self.ucis_ns, subElementName), self.ns_map)
     
-    def parse_xml(self, parseRoot):
-        """ 1) Parse covergroup types """
-        for instanceCoverages in self.findall_ucis_children(parseRoot, "instanceCoverages"):
-            covergroupTypeNameAttrib = 'moduleName'
-            covergroupTypeName = instanceCoverages.get(covergroupTypeNameAttrib)
-            xpath_query = "./*[@{1}='{2}']/{0}:covergroupCoverage".format(
-                self.ucis_ns, covergroupTypeNameAttrib, covergroupTypeName)
-            # search the same element in the resulted merged database
-            searchElement = self.mergeDBtree.find(xpath_query, self.ns_map)
+    # formats an XPath ElementTree query to search for a specified element name
+    # and an optional attribute name together with a certain attribute value
+    def format_et_query(self, elementName, attribName = None, attribValue = None):
+        query = "{0}:{1}".format(self.ucis_ns, elementName)
+        if attribName is not None and attribValue is not None:
+            query += "[@{0}='{1}']".format(attribName, attribValue)
+        return query
     
-            print("Parsing covergroup type: {0}".format(covergroupTypeName))
+    # searches and returns the first match of the XPath query in the mergeDBtree
+    def find_merge_element_by_query(self, xpath_query):
+        return self.mergeDBtree.find(xpath_query, self.ns_map)
+        
+    def parse_xml(self, parseRoot):
+        """ Parse covergroup types """
+        for instanceCoverages in self.findall_ucis_children(parseRoot, "instanceCoverages"):
+            cgTypeNameAttrib = 'moduleName'
+            cgTypeName = instanceCoverages.get(cgTypeNameAttrib)
+            xpath_query = ".//" + self.format_et_query("instanceCoverages", cgTypeNameAttrib, cgTypeName)
+            xpath_query += "/" + self.format_et_query("covergroupCoverage")
+            # search the same element in the resulted merged database
+            searchElement = self.find_merge_element_by_query(xpath_query)
+    
+            print("Parsing covergroup type: {0}".format(cgTypeName))
             if searchElement is not None:
-                self.parse_covergroup_type(instanceCoverages, xpath_query)
+                covergroupCoverage = self.find_ucis_element(instanceCoverages, "covergroupCoverage")
+                self.parse_covergroup_type(covergroupCoverage, xpath_query)
                 print("\n")
             else:
-                print("Found new coverage type [{0}]".format(covergroupTypeName))
+                print("Found new coverage type [{0}]".format(cgTypeName))
                 mergeParent = self.mergeDBroot
                 mergeParent.append(instanceCoverages) # add the element to the mergedDB under root element
 
-    def parse_covergroup_type(self, covergroup_type, parent_query):
+    def parse_covergroup_type(self, covergroupCoverage, parent_query):
         """ Parse covergroup instance """
-        covergroupCoverage = self.find_ucis_element(covergroup_type,"covergroupCoverage")
         for cgInstance in self.findall_ucis_children(covergroupCoverage, "cgInstance"):
             cgInstNameAttrib = 'name'
             cgInstName = cgInstance.get(cgInstNameAttrib)
-            xpath_query = parent_query + "/" + "*[@{0}='{1}']".format(cgInstNameAttrib, cgInstName)
+            xpath_query = parent_query + "/" + self.format_et_query("cgInstance", cgInstNameAttrib, cgInstName)
             # search the same element in the resulted merged database
-            searchElement = self.mergeDBtree.find(xpath_query, self.ns_map)
+            searchElement = self.find_merge_element_by_query(xpath_query)
             
             if searchElement is not None:
                 print ("\t[cgInstance] {0}".format(cgInstName))
@@ -257,7 +269,7 @@ class UCIS_DB_Parser:
                 self.parse_crosses(cgInstance, xpath_query)
             else:
                 print("\tFound new coverage instance [{0}]".format(cgInstName))
-                mergeParent = self.mergeDBtree.find(parent_query, self.ns_map)
+                mergeParent = self.find_merge_element_by_query(parent_query)
                 mergeParent.append(cgInstance) # add the element to the covergroup
 
     def parse_coverpoints(self, cgInstance, parent_query):
@@ -265,9 +277,9 @@ class UCIS_DB_Parser:
         for coverpoint in self.findall_ucis_children(cgInstance, "coverpoint"):
             cvpNameAttrib = 'name'
             cvpName = coverpoint.get(cvpNameAttrib)
-            xpath_query = parent_query + "/" + "*[@{0}='{1}']".format(cvpNameAttrib, cvpName)
+            xpath_query = parent_query + "/" + self.format_et_query("coverpoint", cvpNameAttrib, cvpName)
             # search the same element in the resulted merged database
-            searchElement = self.mergeDBtree.find(xpath_query, self.ns_map)
+            searchElement = self.find_merge_element_by_query(xpath_query)
         
             print ("\t\t[coverpoint] {0}".format(cvpName))
             if searchElement is not None:
@@ -280,24 +292,24 @@ class UCIS_DB_Parser:
         for bin in self.findall_ucis_children(coverpoint, "coverpointBin"):
             binNameAttrib = 'name'
             binName = bin.get(binNameAttrib)
-            xpath_query = parent_query + "/" + "*[@{0}='{1}']".format(binNameAttrib, binName)
-            binMergeElement = self.mergeDBtree.find(xpath_query, self.ns_map)
+            xpath_query = parent_query + "/" + self.format_et_query("coverpointBin", binNameAttrib, binName)
+            binMergeElement = self.find_merge_element_by_query(xpath_query)
             
             if binMergeElement is not None:
                 self.merge_bin_hits(bin, binMergeElement, xpath_query)
             else:
                 print("\t\tFound new bin [{0}]".format(binName))
-                mergeParent = self.mergeDBtree.find(xpath_query + "/..", self.ns_map)
+                mergeParent = self.find_merge_element_by_query(parent_query)
                 mergeParent.append(bin) # add the bin to the covergpoint
         
     def merge_bin_hits(self, bin, binMergeElement, parent_query):
         """ Sum the bin ranges' hit counts """
         # merge hits for bins which are present in both the parsed DB and mergeDBtree
         for range in self.findall_ucis_children(bin, "range"):
-            contents = range.find('{0}:contents'.format(self.ucis_ns), self.ns_map)
+            contents = self.find_ucis_element(range, "contents")
             rangeHitCount = int(contents.get('coverageCount'))
-            xpath_query = parent_query + "/" + '{0}:range'.format(self.ucis_ns)
-            searchElement = self.mergeDBtree.find(xpath_query, self.ns_map)
+            xpath_query = parent_query + "/" + self.format_et_query("range")
+            searchElement = self.find_merge_element_by_query(xpath_query)
             
             if searchElement is None:
                 raise ValueError("Range not found! Bin contents differ between mergeDBtree and parsed XML!")
@@ -326,8 +338,8 @@ class UCIS_DB_Parser:
         for cross in self.findall_ucis_children(cgInstance, "cross"):
             crossNameAttrib = 'name'
             crossName = cross.get(crossNameAttrib)
-            xpath_query = parent_query + "/" + "*[@{0}='{1}']".format(crossNameAttrib, crossName)
-            mergeCrossElement = self.mergeDBtree.find(xpath_query, self.ns_map)
+            xpath_query = parent_query + "/" + self.format_et_query("cross", crossNameAttrib, crossName)
+            mergeCrossElement = self.find_merge_element_by_query(xpath_query)
             
             print ("\t\t[cross] {0}".format(crossName))
             if mergeCrossElement is None:
