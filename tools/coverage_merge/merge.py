@@ -234,7 +234,7 @@ class UCIS_DB_Parser:
     
             print("Parsing covergroup type: {0}".format(covergroupTypeName))
             if searchElement is not None:
-                self.parse_covergroup_type(searchElement, xpath_query)
+                self.parse_covergroup_type(instanceCoverages, xpath_query)
                 print("\n")
             else:
                 print("Found new coverage type [{0}]".format(covergroupTypeName))
@@ -243,7 +243,8 @@ class UCIS_DB_Parser:
 
     def parse_covergroup_type(self, covergroup_type, parent_query):
         """ Parse covergroup instance """
-        for cgInstance in self.findall_ucis_children(covergroup_type, "cgInstance"):
+        covergroupCoverage = self.find_ucis_element(covergroup_type,"covergroupCoverage")
+        for cgInstance in self.findall_ucis_children(covergroupCoverage, "cgInstance"):
             cgInstNameAttrib = 'name'
             cgInstName = cgInstance.get(cgInstNameAttrib)
             xpath_query = parent_query + "/" + "*[@{0}='{1}']".format(cgInstNameAttrib, cgInstName)
