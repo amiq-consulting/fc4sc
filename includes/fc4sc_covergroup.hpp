@@ -120,7 +120,7 @@ public:
   virtual void sample() {
     for (auto& cvp : this->cvps) {
       try {
-	  cvp->sample();
+        cvp->sample();
       }
       catch(illegal_bin_sample_exception &e) {
         e.update_cvg_info(this->name);
@@ -142,20 +142,13 @@ public:
     double res = 0;
     double weights = 0;
 
-    for (auto &cvp : cvps)
-    {
+    for (auto &cvp : cvps) {
       res += cvp->get_inst_coverage() * cvp->option.weight;
       weights += cvp->option.weight;
     }
 
     if (weights == 0 || cvps.size() == 0 || res == 0)
-    {
-
-      if (this->option.weight != 0)
-        return 0;
-      else
-        return 100;
-    }
+      return (this->option.weight == 0) ? 100 : 0;
 
     double real = res / weights;
     return (real >= this->option.goal) ? 100 : real;
@@ -169,7 +162,6 @@ public:
    */
   double get_inst_coverage(int &bins_covered, int &total) const 
   {
-
     double res = 0;
     double weights = 0;
     int bins_aux = 0;
@@ -188,14 +180,9 @@ public:
 
     if (weights == 0 || cvps.size() == 0 || res == 0)
     {
-
       total = 0;
       bins_covered = 0;
-
-      if (this->option.weight != 0)
-        return 0;
-      else
-        return 100;
+      return (this->option.weight == 0) ? 100 : 0;
     }
 
     double real = res / weights;
