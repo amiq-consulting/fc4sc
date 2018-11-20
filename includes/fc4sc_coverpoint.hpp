@@ -286,8 +286,13 @@ public:
    * \brief Initializer list constructor that receives a list of bin (of any types,
    * even mixed) and registers all the bins in this coverpoint.
    */
+  #ifdef FC4SC_DARWIN_WORKAROUNDS
+  coverpoint(std::initializer_list<const bin_wrapper<T>> list) {
+    for (const bin_wrapper<T> &bin_w : list) {
+  #else
   coverpoint(std::initializer_list<bin_wrapper<T>> list) {
     for (auto &bin_w : list) {
+  #endif
       bin_w.get_bin()->add_to_cvp(*this);
     }
   }

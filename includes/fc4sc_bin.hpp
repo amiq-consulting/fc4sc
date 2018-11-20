@@ -420,9 +420,14 @@ private:
   std::unique_ptr<bin<T>> bin_h;
   bin<T> *get_bin() const { return bin_h.get(); }
 
+public:
   bin_wrapper() = delete;
   bin_wrapper(bin_wrapper &) = delete;
-  bin_wrapper(bin_wrapper &&) = delete;
+#ifdef FC4SC_DARWIN_WORKAROUNDS
+    bin_wrapper(bin_wrapper && r ) { bin_h = std::move(r.bin_h) ; }
+#else
+    bin_wrapper(bin_wrapper && r ) = delete;
+#endif
   bin_wrapper& operator=(bin_wrapper &) = delete;
   bin_wrapper& operator=(bin_wrapper &&) = delete;
 public:
