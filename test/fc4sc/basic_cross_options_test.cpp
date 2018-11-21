@@ -39,7 +39,7 @@ public:
   void sample(const int& x, const int& y) {
     this->sample_point_1 = x;
     this->sample_point_2 = y;
-    
+
     covergroup::sample();
   }
 
