@@ -30,15 +30,9 @@ INCLUDE_FC4SC := -I./../../includes
 SRC_FILES := $(wildcard $(SRC_DIR)/*.cpp)
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_FILES))
 
-LDFLAGS := -lpthread -L $(GOOGLE_TEST_HOME)/build/googlemock/gtest -lgtest 
+LDFLAGS := -lpthread -L $(GOOGLE_TEST_HOME)/build/googlemock/gtest -lgtest
 CPPFLAGS := -I $(GOOGLE_TEST_HOME)/googletest/include $(INCLUDE_FC4SC)
 CXXFLAGS := -std=c++11 -Wextra $(DEBUGFLAGS)
-
-UNAME_S := $(shell uname -s)
-ifeq ($(UNAME_S),Darwin)
-   CPPFLAGS += -DFC4SC_DARWIN_WORKAROUNDS
-   LDFLAGS += -lc++abi
-endif
 
 CC := g++
 EXEC := main.exe

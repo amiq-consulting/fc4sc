@@ -326,7 +326,7 @@ protected:
       // bin array was defined by using a vector of intervals or values
       // create a new bin for each value/interval and add it to the coverpoint
       std::stringstream ss;
-      for (int i = 0; i < this->intervals.size(); ++i) {
+      for (size_t i = 0; i < this->intervals.size(); ++i) {
         ss << this->name << "[" << i << "]";
         cvp.bins.push_back(bin<T>(ss.str(), this->intervals[i]));
         ss.str(std::string()); // clear the stringstream
@@ -335,7 +335,16 @@ protected:
     else {
       // bin array was defined by using an interval which needs to be split into
       // multiple pieces. The interval is found in the this->intervals[0]
+      // FIXME: interval_length is not properly calculated for floating point types
       T interval_length = (this->intervals[0].second - this->intervals[0].first) + 1;
+
+      // The if following condition can trigger comparison warnings.
+      // Casting interval_length is not a viable option because if T is float
+      // or double, we will cast away the floating point and lose information!
+      // Nor is casting the count variable to T either, because we might undercast
+      // TODO: find a way to work around this issue
+      // NOTE: A potential fix would be implementing a template specialization
+      // of the bin_array class for floating point types (float/double).
       if (this->count > interval_length) {
         // This bin array interval cannot be split into pieces. Add a single
         // bin containing the whole interval to the coverpoint. We can simply
@@ -421,13 +430,9 @@ private:
   bin<T> *get_bin() const { return bin_h.get(); }
 
 public:
+  bin_wrapper(bin_wrapper && r) { bin_h = std::move(r.bin_h); }
   bin_wrapper() = delete;
   bin_wrapper(bin_wrapper &) = delete;
-#ifdef FC4SC_DARWIN_WORKAROUNDS
-    bin_wrapper(bin_wrapper && r ) { bin_h = std::move(r.bin_h) ; }
-#else
-    bin_wrapper(bin_wrapper && r ) = delete;
-#endif
   bin_wrapper& operator=(bin_wrapper &) = delete;
   bin_wrapper& operator=(bin_wrapper &&) = delete;
 public:

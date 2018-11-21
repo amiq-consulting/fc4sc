@@ -69,12 +69,11 @@ private:
   // static check to make sure that the coverpoint is templated by a numeric type
   static_assert(std::is_arithmetic<T>::value, "Type must be numeric!");
   /*
-   * The covergroup class needs access to private members of the coverpoint in order to
-   * set the sample condition, expression and name.
-   * This id done in function
+   * The covergroup class needs access to private members of the coverpoint
+   * in order to set the sample condition, expression and name.
    */
   friend class covergroup;
-  // friend functions that can insert into the bin vectors -> add_to_cvp(coverpoint<T>&)
+  // friend functions that need access to the bin vectors -> add_to_cvp(coverpoint<T>&)
   friend class bin<T>;
   friend class bin_array<T>;
   friend class ignore_bin<T>;
@@ -130,15 +129,8 @@ private:
 #ifdef FC4SC_DISABLE_SAMPLING
     return;
 #endif
-//<<<<<<< HEAD
-//    if (!collect) {
-//      last_sample_success = false;
-//      return;
-//    }
-//=======
     if (!collect) return;
     bool cvp_was_hit = false;
-//>>>>>>> FC4SC_v2.1.1
 
     // 1) Search if the value is in the ignore bins
     for (auto& ig_bin_it : ignore_bins)
@@ -157,33 +149,6 @@ private:
       }
     }
 
-//<<<<<<< HEAD
-//    // Sample bin arrays first => higher hit chance
-//    uint64_t start = bins.size();
-//    for (size_t i = 0; i < bin_arrays.size(); ++i) {
-//
-//      uint64_t hit = bin_arrays[i].sample(cvp_val);
-//      if (hit) {
-//        this->last_bin_index_hit = start + hit - 1;
-//        this->last_sample_success = true;
-//        return;
-//      }
-//
-//      start += bin_arrays[i].count;
-//    }
-//
-//    // Sample default bins
-//    for (size_t i = 0; i < bins.size(); ++i) {
-//      if (bins[i].sample(cvp_val)) {
-//        this->last_bin_index_hit = i;
-//        this->last_sample_success = true;
-//        return;
-//      }
-//    }
-//
-//    this->last_sample_success = false;
-//    misses++;
-//=======
     // Sample regular bins
     for (size_t i = 0; i < bins.size(); ++i) {
       if (bins[i].sample(cvp_val)) {
@@ -198,7 +163,6 @@ private:
       this->last_sample_success = 0;
       misses++;
     }
-//>>>>>>> FC4SC_v2.1.1
   }
 
   /*! Default constructor */
@@ -286,17 +250,11 @@ public:
    * \brief Initializer list constructor that receives a list of bin (of any types,
    * even mixed) and registers all the bins in this coverpoint.
    */
-  #ifdef FC4SC_DARWIN_WORKAROUNDS
   coverpoint(std::initializer_list<const bin_wrapper<T>> list) {
     for (const bin_wrapper<T> &bin_w : list) {
-  #else
-  coverpoint(std::initializer_list<bin_wrapper<T>> list) {
-    for (auto &bin_w : list) {
-  #endif
       bin_w.get_bin()->add_to_cvp(*this);
     }
   }
-
 
   template <typename... Args>
   coverpoint(cvg_base *parent_cvg, Args... args) : coverpoint(args...) {
@@ -329,7 +287,6 @@ public:
       else {
         // This is a fix so that crosses are not sampled if any of the coverpoints
         // used for crossing has a sample condition which is not met.
-        // FIXME: the cross should be sampled separately, not conditioned by the coverpoints!
         this->last_sample_success = false;
         this->last_bin_index_hit = 0;
       }

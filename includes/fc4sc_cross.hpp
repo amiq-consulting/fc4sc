@@ -116,8 +116,8 @@ class cross : public cvp_base
    * \brief End of recursion
    */
   template <size_t k>
-  bool check(std::vector<std::vector<size_t>> &found)
-  {
+  bool check(std::vector<std::vector<size_t>> &found) {
+    (void)found; // safe warning suppression
     return true;
   }
 
