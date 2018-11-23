@@ -385,6 +385,8 @@ public:
       bin.to_xml(stream);
     for (auto &bin : illegal_bins)
       bin.to_xml(stream);
+    for (auto &bin : ignore_bins)
+      bin.to_xml(stream);
 
     stream << "</ucis:coverpoint>\n\n";
   }
