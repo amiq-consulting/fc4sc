@@ -105,7 +105,7 @@ protected:
   /*! Disabled */
   covergroup() = delete;
   /*! Disabled */
-  virtual covergroup &operator=(const covergroup &other) = delete;
+  covergroup &operator=(const covergroup &other) = delete;
   /*! Disabled */
   covergroup(const covergroup &other) = delete;
   /*! Disabled */
