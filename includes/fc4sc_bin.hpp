@@ -299,6 +299,7 @@ protected:
       // bin array was defined by using a vector of intervals or values
       // create a new bin for each value/interval and add it to the coverpoint
       std::stringstream ss;
+
       for (size_t i = 0; i < this->intervals.size(); ++i) {
         ss << this->name << "[" << i << "]";
         cvp.bins.push_back(bin<T>(ss.str(), this->intervals[i]));
@@ -308,6 +309,7 @@ protected:
     else {
       // bin array was defined by using an interval which needs to be split into
       // multiple pieces. The interval is found in the this->intervals[0]
+
       // FIXME: interval_length is not properly calculated for floating point types
       T interval_length = (this->intervals[0].second - this->intervals[0].first) + 1;
 
@@ -318,6 +320,8 @@ protected:
       // TODO: find a way to work around this issue
       // NOTE: A potential fix would be implementing a template specialization
       // of the bin_array class for floating point types (float/double).
+      T interval_length = (this->intervals[0].second - this->intervals[0].first) + 1;
+
       if (this->count > interval_length) {
         // This bin array interval cannot be split into pieces. Add a single
         // bin containing the whole interval to the coverpoint. We can simply
