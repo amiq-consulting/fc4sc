@@ -161,7 +161,7 @@ class global
       // Header
       stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
              << "\n";
-      stream << "<ucis:UCIS xmlns:ucis=\"UCIS\" ucisVersion=\"1.0\" ";
+      stream << "<ucis:UCIS xmlns:ucis=\"http://www.w3.org/2001/XMLSchema-instance\" ucisVersion=\"1.0\" ";
       stream << " writtenBy=\""
              << "$USER"
              << "\"\n";
@@ -259,7 +259,7 @@ class global
       for (auto &type_it : cv_data)
       {
 
-        stream << "<instanceCoverages ";
+        stream << "<ucis:instanceCoverages ";
         stream << "name=\""
                << "string"
                << "\" \n";
@@ -308,7 +308,7 @@ class global
 
         stream << "</ucis:covergroupCoverage>\n";
 
-        stream << "</instanceCoverages>\n";
+        stream << "</ucis:instanceCoverages>\n";
       }
 
       stream << "</ucis:UCIS>\n";
@@ -362,12 +362,12 @@ class global
     };
 
     /*!
-   * \brief Computes the coverage percentage across all instances of a given type
-   * \param type Unmangled type name
-   * \param hit_bins Total number of hit bins in instances
-   * \param total_bins Total number of bins in instances
-   * \returns Double between 0 and 100
-   */
+     * \brief Computes the coverage percentage across all instances of a given type
+     * \param type Unmangled type name
+     * \param hit_bins Total number of hit bins in instances
+     * \param total_bins Total number of bins in instances
+     * \returns Double between 0 and 100
+     */
     // TODO merge hit_bins
     double get_coverage(const std::string &type, int &hit_bins, int &total_bins)
     {

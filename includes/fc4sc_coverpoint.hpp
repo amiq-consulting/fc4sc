@@ -69,12 +69,11 @@ private:
   // static check to make sure that the coverpoint is templated by a numeric type
   static_assert(std::is_arithmetic<T>::value, "Type must be numeric!");
   /*
-   * The covergroup class needs access to private members of the coverpoint in order to
-   * set the sample condition, expression and name.
-   * This id done in function
+   * The covergroup class needs access to private members of the coverpoint
+   * in order to set the sample condition, expression and name.
    */
   friend class covergroup;
-  // friend functions that can insert into the bin vectors -> add_to_cvp(coverpoint<T>&)
+  // friend functions that need access to the bin vectors -> add_to_cvp(coverpoint<T>&)
   friend class bin<T>;
   friend class bin_array<T>;
   friend class ignore_bin<T>;
@@ -136,15 +135,15 @@ private:
     // 1) Search if the value is in the ignore bins
     for (auto& ig_bin_it : ignore_bins)
       if (ig_bin_it.sample(cvp_val)) {
-        this->last_sample_success = 0;
+        this->last_sample_success = false;
         return;
       }
 
-    // 1) Search if the value is in the illegal bins
+    // 2) Search if the value is in the illegal bins
     for (auto& il_bin_hit : illegal_bins) {
       try { il_bin_hit.sample(cvp_val);  }
       catch (illegal_bin_sample_exception &e) {
-        this->last_sample_success = 0;
+        this->last_sample_success = false;
         e.update_cvp_info(this->name);
         throw e;
       }
@@ -251,12 +250,11 @@ public:
    * \brief Initializer list constructor that receives a list of bin (of any types,
    * even mixed) and registers all the bins in this coverpoint.
    */
-  coverpoint(std::initializer_list<bin_wrapper<T>> list) {
-    for (auto &bin_w : list) {
+  coverpoint(std::initializer_list<const bin_wrapper<T>> list) {
+    for (const bin_wrapper<T> &bin_w : list) {
       bin_w.get_bin()->add_to_cvp(*this);
     }
   }
-
 
   template <typename... Args>
   coverpoint(cvg_base *parent_cvg, Args... args) : coverpoint(args...) {
@@ -286,6 +284,12 @@ public:
     if (has_sample_expression) {
       if (!has_sample_condition() || sample_condition())
          this->sample(sample_expression());
+      else {
+        // This is a fix so that crosses are not sampled if any of the coverpoints
+        // used for crossing has a sample condition which is not met.
+        this->last_sample_success = false;
+        this->last_bin_index_hit = 0;
+      }
     }
     else {
       this->sample(*sample_point);
@@ -380,6 +384,8 @@ public:
     for (auto &bin : bins)
       bin.to_xml(stream);
     for (auto &bin : illegal_bins)
+      bin.to_xml(stream);
+    for (auto &bin : ignore_bins)
       bin.to_xml(stream);
 
     stream << "</ucis:coverpoint>\n\n";

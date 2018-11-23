@@ -128,7 +128,11 @@
   function takeAction (node) {
 
     switch(node.nodeName) {
-      case "ucis:coverpointBin" : { global_bin_tree.push(new Bin(node)); return SizeEnum.RETURN;  }
+      case "ucis:coverpointBin" : {
+        if (node.getAttribute("type") !== "ignore") 
+            global_bin_tree.push(new Bin(node)); 
+        return SizeEnum.RETURN;  
+      }
       case "ucis:crossBin" : { cross_bins.push(new CrossBin(node)); return SizeEnum.RETURN;  }
       case "ucis:cgInstance" : { return SizeEnum.DEEPER; }
       default: { return SizeEnum.DEEPER; }
@@ -274,7 +278,7 @@ function readSingleFile(e) {
 
     toc.innerHTML = "<ul>";
 
-    var covergroup_type = xmlFile.getElementsByTagName("instanceCoverages"); 
+    var covergroup_type = xmlFile.getElementsByTagName("ucis:instanceCoverages"); 
 
     for (var it = 0; it < covergroup_type.length; ++it) {
 

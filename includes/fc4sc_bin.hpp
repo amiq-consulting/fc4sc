@@ -103,15 +103,8 @@ protected:
   /*! Default Constructor */
   bin() = default;
 
-  void print_xml_header(std::ostream &stream, const std::string &type) const
-  {
-    stream << "<ucis:coverpointBin name=\"" << name << "\" \n";
-    stream << "type=\""
-           << type
-           << "\" "
-           << "alias=\"" << get_hitcount() << "\""
-           << ">\n";
-  }
+  // the type of UCIS bin (default/ignore/illegal)
+  std::string ucis_bin_type;
 
   uint64_t hits = 0;
 
@@ -137,6 +130,7 @@ public:
   bin(const std::string &bin_name, Args... args) noexcept : bin(args...) {
     static_assert(forbid_type<std::string, Args...>::value, "Bin constructor accepts only 1 name argument!");
     this->name = bin_name;
+    this->ucis_bin_type = "default";
   }
 
   /*! Default Destructor */
@@ -189,23 +183,25 @@ public:
    */
   virtual void to_xml(std::ostream &stream) const
   {
-
-    print_xml_header(stream, "default");
+    stream << "<ucis:coverpointBin name=\"" << name << "\" \n";
+    stream << "type=\""
+           << this->ucis_bin_type
+           << "\" "
+           << "alias=\"" << this->get_hitcount() << "\""
+           << ">\n";
 
     // Print each range. Coverpoint writes the header (name etc.)
-    for (size_t i = 0; i < intervals.size(); ++i)
+    for (size_t i = 0; i < this->intervals.size(); ++i)
     {
       stream << "<ucis:range \n"
-             << "from=\"" << intervals[i].first << "\" \n"
-             << "to =\"" << intervals[i].second << "\"\n"
+             << "from=\"" << this->intervals[i].first << "\" \n"
+             << "to =\"" << this->intervals[i].second << "\"\n"
              << ">\n";
 
       // Print hits for each range
       stream << "<ucis:contents "
-             << "coverageCount=\"" << this->hits << "\""
-             << ">";
+             << "coverageCount=\"" << this->hits << "\">";
       stream << "</ucis:contents>\n";
-
       stream << "</ucis:range>\n\n";
     }
 
@@ -214,10 +210,8 @@ public:
 
   friend std::vector<interval_t<T>> reunion<T>(const bin<T>& lhs, const std::vector<interval_t<T>>& rhs);
   friend std::vector<interval_t<T>> intersection<T>(const bin<T>& lhs, const std::vector<interval_t<T>>& rhs);
-
   friend std::vector<interval_t<T>> reunion<T>(const bin<T>& lhs, const bin<T>& rhs);
   friend std::vector<interval_t<T>> intersection<T>(const bin<T>& lhs, const bin<T>& rhs);
-
 };
 
 /*!
@@ -241,7 +235,9 @@ public:
    *  \brief Forward to parent constructor
    */
   template <typename... Args>
-  explicit illegal_bin(Args... args) : bin<T>::bin(args...){}
+  explicit illegal_bin(Args... args) : bin<T>::bin(args...) {
+    this->ucis_bin_type = "illegal";
+  }
 
   virtual ~illegal_bin() = default;
 
@@ -264,31 +260,6 @@ public:
 
     return 0;
   }
-
-  virtual void to_xml(std::ostream &stream) const
-  {
-
-    this->print_xml_header(stream, "illegal");
-
-    // Print each range. Coverpoint writes the header (name etc.)
-    for (size_t i = 0; i < this->intervals.size(); ++i)
-    {
-      stream << "<ucis:range \n"
-             << "from=\"" << this->intervals[i].first << "\" \n"
-             << "to =\"" << this->intervals[i].second << "\"\n"
-             << ">\n";
-
-      // Print hits for each range
-      stream << "<ucis:contents "
-             << "coverageCount=\"" << this->hits << "\""
-             << ">";
-      stream << "</ucis:contents>\n";
-
-      stream << "</ucis:range>\n\n";
-    }
-
-    stream << "</ucis:coverpointBin>\n";
-  }
 };
 
 template <class T>
@@ -308,7 +279,9 @@ public:
    *  \brief Forward to parent constructor
    */
   template <typename... Args>
-  explicit ignore_bin(Args... args) : bin<T>::bin(args...){}
+  explicit ignore_bin(Args... args) : bin<T>::bin(args...) {
+    this->ucis_bin_type = "ignore";
+  }
 
   virtual ~ignore_bin() = default;
 };
@@ -326,7 +299,8 @@ protected:
       // bin array was defined by using a vector of intervals or values
       // create a new bin for each value/interval and add it to the coverpoint
       std::stringstream ss;
-      for (int i = 0; i < this->intervals.size(); ++i) {
+
+      for (size_t i = 0; i < this->intervals.size(); ++i) {
         ss << this->name << "[" << i << "]";
         cvp.bins.push_back(bin<T>(ss.str(), this->intervals[i]));
         ss.str(std::string()); // clear the stringstream
@@ -335,7 +309,19 @@ protected:
     else {
       // bin array was defined by using an interval which needs to be split into
       // multiple pieces. The interval is found in the this->intervals[0]
+
+      // FIXME: interval_length is not properly calculated for floating point types
       T interval_length = (this->intervals[0].second - this->intervals[0].first) + 1;
+
+      // The if following condition can trigger comparison warnings.
+      // Casting interval_length is not a viable option because if T is float
+      // or double, we will cast away the floating point and lose information!
+      // Nor is casting the count variable to T either, because we might undercast
+      // TODO: find a way to work around this issue
+      // NOTE: A potential fix would be implementing a template specialization
+      // of the bin_array class for floating point types (float/double).
+      T interval_length = (this->intervals[0].second - this->intervals[0].first) + 1;
+
       if (this->count > interval_length) {
         // This bin array interval cannot be split into pieces. Add a single
         // bin containing the whole interval to the coverpoint. We can simply
@@ -420,9 +406,10 @@ private:
   std::unique_ptr<bin<T>> bin_h;
   bin<T> *get_bin() const { return bin_h.get(); }
 
+public:
+  bin_wrapper(bin_wrapper && r) { bin_h = std::move(r.bin_h); }
   bin_wrapper() = delete;
   bin_wrapper(bin_wrapper &) = delete;
-  bin_wrapper(bin_wrapper &&) = delete;
   bin_wrapper& operator=(bin_wrapper &) = delete;
   bin_wrapper& operator=(bin_wrapper &&) = delete;
 public:

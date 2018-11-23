@@ -37,33 +37,34 @@ class bin;
 
 template <typename T>
 class binsof {
-
+  // TODO: implementation needed
 public:
 
-	std::vector<interval_t<T>> allowed_bins;
+  std::vector<interval_t<T>> allowed_bins;
 
-	binsof() {}
-	
-	binsof(coverpoint<T> cvp) {
+  binsof() {}
 
-	};
+  binsof(coverpoint<T> cvp) {
+    (void)cvp; // suppress warning
+  };
 
-	binsof(bin<T> cvp) {
-		
-	};
+  binsof(bin<T> cvp) {
+    (void)cvp; // suppress warning
+  };
 
-	binsof<T>& operator||(const binsof<T> &rhs) {
-		return *this;
-	};
+  binsof<T>& operator||(const binsof<T> &rhs) {
+    (void)rhs; // suppress warning
+    return *this;
+  };
 
-	binsof<T>& operator&&(const binsof<T> &rhs) {
-		return *this;
-	};
+  binsof<T>& operator&&(const binsof<T> &rhs) {
+    (void)rhs; // suppress warning
+    return *this;
+  };
 
-	binsof<T>& intersect() {
-		return *this;
-	}
-
+  binsof<T>& intersect() {
+    return *this;
+  }
 };
 
 }	// namespace fc4sc

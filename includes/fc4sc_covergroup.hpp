@@ -105,7 +105,7 @@ protected:
   /*! Disabled */
   covergroup() = delete;
   /*! Disabled */
-  virtual covergroup &operator=(const covergroup &other) = delete;
+  covergroup &operator=(const covergroup &other) = delete;
   /*! Disabled */
   covergroup(const covergroup &other) = delete;
   /*! Disabled */
@@ -247,11 +247,9 @@ public:
            << "\" line=\""
            << "1"
            << "\" inlineCount=\"1\"/>\n";
-    stream << "<ucis:cgSourceId file=\""
-           << "2"
-           << "\" line=\""
-           << "3"
-           << "\" inlineCount=\"1\"/>\n";
+    stream << "<ucis:cgSourceId file=\"" << file_name << "\" "
+           << "line=\"" << line << "\""
+           << " inlineCount=\"1\"/>\n";
     stream << "</ucis:cgId>\n";
 
     // Print coverpoints
