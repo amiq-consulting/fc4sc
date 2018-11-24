@@ -129,8 +129,9 @@
 
     switch(node.nodeName) {
       case "ucis:coverpointBin" : {
-        if (node.getAttribute("type") !== "ignore") 
-            global_bin_tree.push(new Bin(node)); 
+        if (node.getAttribute("type") !== "ignore") {
+          global_bin_tree.push(new Bin(node));
+        }
         return SizeEnum.RETURN;  
       }
       case "ucis:crossBin" : { cross_bins.push(new CrossBin(node)); return SizeEnum.RETURN;  }

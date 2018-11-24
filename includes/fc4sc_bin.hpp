@@ -320,8 +320,6 @@ protected:
       // TODO: find a way to work around this issue
       // NOTE: A potential fix would be implementing a template specialization
       // of the bin_array class for floating point types (float/double).
-      T interval_length = (this->intervals[0].second - this->intervals[0].first) + 1;
-
       if (this->count > interval_length) {
         // This bin array interval cannot be split into pieces. Add a single
         // bin containing the whole interval to the coverpoint. We can simply
