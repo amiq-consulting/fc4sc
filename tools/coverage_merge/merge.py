@@ -240,11 +240,13 @@ class UCIS_DB_Parser:
         parseTree = ET.parse(filename)
         parseRoot = parseTree.getroot()
         data = {
-            'modules' : {}
+            'modules' : {},
+            'pct_cov' : 0
         }
         for instanceCoverages in self.findall_ucis_children(parseRoot, "instanceCoverages"):
             module_data = {
                 'pct_cov' : 0,
+                'weight' : 1,
                 'instances' : {}
             }
             data['modules'][instanceCoverages.get('moduleName')] = module_data
@@ -254,6 +256,8 @@ class UCIS_DB_Parser:
                                  / float(sum([cg['weight'] for cg in module_data['instances'].values()]))
 
 
+        data['pct_cov'] = sum([cg['pct_cov']*cg['weight'] for cg in data['modules'].values()]) \
+                                 / float(sum([cg['weight'] for cg in data['modules'].values()]))
         return data
 
     def get_covergroup_report_data(self, covergroupCoverage, module_data):
@@ -277,6 +281,7 @@ class UCIS_DB_Parser:
             options = self.find_ucis_element(coverpoint, 'options')
             cp_name = coverpoint.get('name')
             cp_data = {
+                'item_type' : 'point',
                 'bin_count': 0,
                 'bin_hits': 0,
                 'bin_misses': 0,
@@ -325,6 +330,7 @@ class UCIS_DB_Parser:
             cr_name = cross.get('name')
             cr_data = {
                 'bin_count': 0,
+                'item_type': "cross",
                 'bin_hits': 0,
                 'bin_misses': 0,
                 'misses': [],

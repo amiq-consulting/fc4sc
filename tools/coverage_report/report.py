@@ -33,13 +33,30 @@ def report_coverage(report_missing=False):
 """                     %s """ % bin )
 
 
+def reduce_to_cg_inst_summary(db):
+    out_db = { 'pct_cov' : db['pct_cov'] }
+    for mod_name, mod_data in db['modules'].items():
+        for inst_name, inst_data in mod_data['instances'].items():
+            d = {'pct_cov' : inst_data['pct_cov'],
+                 'points' : {},
+                 'crosses' : {}}
+            out_db[inst_name] = d ;
+            for cp_name, cp_data in inst_data['inst_data'].items():
+                if(cp_data['item_type'] == 'point'):
+                    d['points'][cp_name] = cp_data['pct_cov']
+                else:
+                    d['crosses'][cp_name] = cp_data['pct_cov']
+    return out_db
+
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='FC4SC report generator')
 
     parser.add_argument('--xml_report',           type=str, help="Input XML report")
-    parser.add_argument('--yaml_out',             type=str, help="Output YAML file")
     parser.add_argument('--report_missing_bins',  action='store_true', help="Including missing bin details in report")
+    parser.add_argument('--yaml_out',             type=str, help="Output YAML file")
+    parser.add_argument('--yaml_cg_summary',      action='store_true', help="Covergroup summary to YAML")
 
     args = parser.parse_args()
 
@@ -48,8 +65,11 @@ if __name__ == "__main__":
     d = parser.get_report_data(args.xml_report)
 
     if(args.yaml_out):
+        yaml_db = d
+        if(args.yaml_cg_summary):
+            yaml_db = reduce_to_cg_inst_summary(d)
         with open(args.yaml_out, 'w') as yaml_file:
-            yaml.dump(d, yaml_file, default_flow_style=False)
+            yaml.dump(yaml_db, yaml_file, default_flow_style=False)
 
     print("""
   Overall Summary:
@@ -57,7 +77,7 @@ if __name__ == "__main__":
     Total Coverage: %6.2f
     
   Module Summary:
-""" % (22.4))
+""" % (yaml_db['pct_cov']))
 
     report_coverage()
 
