@@ -130,39 +130,33 @@ private:
     return;
 #endif
     if (!collect) return;
-    bool cvp_was_hit = false;
+    this->last_sample_success = false;
 
     // 1) Search if the value is in the ignore bins
-    for (auto& ig_bin_it : ignore_bins)
+    for (auto& ig_bin_it : ignore_bins) {
       if (ig_bin_it.sample(cvp_val)) {
-        this->last_sample_success = false;
+        misses++;
         return;
       }
-
+    }
     // 2) Search if the value is in the illegal bins
     for (auto& il_bin_hit : illegal_bins) {
-      try { il_bin_hit.sample(cvp_val);  }
+      try { il_bin_hit.sample(cvp_val); }
       catch (illegal_bin_sample_exception &e) {
-        this->last_sample_success = false;
         e.update_cvp_info(this->name);
         throw e;
       }
     }
-
     // Sample regular bins
     for (size_t i = 0; i < bins.size(); ++i) {
       if (bins[i].sample(cvp_val)) {
         this->last_bin_index_hit = i;
-        this->last_sample_success = 1;
-        cvp_was_hit = true;
+        this->last_sample_success = true;
         if (this->stop_sample_on_first_bin_hit) return;
       }
     }
   
-    if (!cvp_was_hit) {
-      this->last_sample_success = 0;
-      misses++;
-    }
+    if (!this->last_sample_success) { misses++; }
   }
 
   /*! Default constructor */

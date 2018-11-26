@@ -230,8 +230,8 @@ protected:
   bool stop_sample_on_first_bin_hit = false;
 
 public:
-  size_t last_bin_index_hit;
-  bool last_sample_success;
+  size_t last_bin_index_hit = 0;
+  bool last_sample_success = false;
 
   /*! Instance specific options */
   cvp_option option;

@@ -163,11 +163,10 @@ public:
 
   /*!
    *  \brief Sampling function at cross level
-   *  
-   *  Checks if coverpoints hit ....
    */
   virtual void sample() 
   {
+    if (!this->collect) return;
     std::vector <size_t> hit_bins;
     for (auto& cvp : cvps_vec) {
       if (cvp->last_sample_success) {
