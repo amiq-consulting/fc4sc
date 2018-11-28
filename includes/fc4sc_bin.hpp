@@ -127,11 +127,19 @@ public:
    *  \param args Rest of arguments
    */
   template<typename ...Args>
-  bin(const std::string &bin_name, Args... args) noexcept : bin(args...) {
+  explicit bin(const std::string &bin_name, Args... args) noexcept : bin(args...) {
     static_assert(forbid_type<std::string, Args...>::value, "Bin constructor accepts only 1 name argument!");
     this->name = bin_name;
     this->ucis_bin_type = "default";
   }
+
+  /*!
+   *  \brief Takes the bin name
+   *  \param bin_name Name of the bin
+   *  \param args Rest of arguments
+   */
+  template<typename ...Args>
+  explicit bin(const char *bin_name, Args... args) noexcept : bin(std::string(bin_name), args...) {}
 
   /*! Default Destructor */
   virtual ~bin() = default;
@@ -194,8 +202,13 @@ public:
     for (size_t i = 0; i < this->intervals.size(); ++i)
     {
       stream << "<ucis:range \n"
-             << "from=\"" << this->intervals[i].first << "\" \n"
-             << "to =\"" << this->intervals[i].second << "\"\n"
+	  // Adding "+" before the "this->intervals[i].first" and "this->intervals[i].second"
+	  // operands which promotes them to numeric types. This means that char-based types
+	  // will be output (in the UCIS DB) in numeric form.
+	  // Char based types are problematic when used with value 0 because they are treated
+	  // as NULL terminator and results in malformed XML!
+             << "from=\"" << +this->intervals[i].first << "\" \n"
+             << "to =\"" << +this->intervals[i].second << "\"\n"
              << ">\n";
 
       // Print hits for each range
