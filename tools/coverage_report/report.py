@@ -62,7 +62,12 @@ if __name__ == "__main__":
 
     parser = merge.UCIS_DB_Parser()
 
-    d = parser.get_report_data(args.xml_report)
+    try:
+        d = parser.get_report_data(args.xml_report)
+    except IOError as e:
+        sys.stderr.write("Failed to parse XML report:\n\t%s\n" % (str(e)))
+        sys.stderr.flush()
+        exit(1) ;
 
     if(args.yaml_out):
         yaml_db = d

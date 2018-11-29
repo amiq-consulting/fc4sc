@@ -577,7 +577,6 @@ if __name__ == "__main__":
     # the search top directory is by default the execution directory
     args = parser.parse_args()
     if args.merge_to_db:
-        print("Here we is: writing to %s" % args.merge_to_db)
         merger = UCIS_DB_Parser()
         for filename in args.other_args:
             filename = filename.rstrip("\n\r")
