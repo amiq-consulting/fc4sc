@@ -26,6 +26,7 @@
 import os
 import sys
 import xml.etree.ElementTree as ET
+import argparse
 from fnmatch import fnmatch
 
 """
@@ -285,6 +286,7 @@ class UCIS_DB_Parser:
                 'bin_count': 0,
                 'bin_hits': 0,
                 'bin_misses': 0,
+                'hits' : [],
                 'misses' : [],
                 'weight': int(options.get('weight')),
                 'pct_cov': 0,
@@ -298,6 +300,7 @@ class UCIS_DB_Parser:
                 hits = int(bin.get('alias'))  # Alias is number of hits
                 if (hits > 0):
                     cp_data['bin_hits'] += 1
+                    cp_data['hits'].append(bin_name)
                 else:
                     cp_data['bin_misses'] += 1
                     cp_data['misses'].append(bin_name)
@@ -333,6 +336,7 @@ class UCIS_DB_Parser:
                 'item_type': "cross",
                 'bin_hits': 0,
                 'bin_misses': 0,
+                'hits': [],
                 'misses': [],
                 'weight': int(options.get('weight')),
                 'pct_cov': 0,
@@ -362,6 +366,7 @@ class UCIS_DB_Parser:
             for bin_tuple, hits in bin_hits.items():
                 if(hits > 0):
                     cr_data['bin_hits'] += 1
+                    cr_data['hits'].append(self.get_cross_bin_name_from_tuple(cg_cp_bin_map, exprs, bin_tuple))
                 else:
                     cr_data['bin_misses'] += 1
                     cr_data['misses'].append(self.get_cross_bin_name_from_tuple(cg_cp_bin_map, exprs, bin_tuple))
@@ -566,45 +571,56 @@ def find_xmls(directory):
                 yield filename
                 
 if __name__ == "__main__":
-    # the search top directory is by default the execution directory 
-    search_top_dir = os.getcwd()
-    merged_db_name = "coverage_merged_db.xml"
-    if len(sys.argv) > 1: # if specified file path
-        search_top_dir = sys.argv[1]
-    if len(sys.argv) > 2: # if specified merged database name
-        merged_db_name = sys.argv[2]
+    parser = argparse.ArgumentParser(description='FC4SC merge tool')
+    parser.add_argument('--merge_to_db',  type=str, help='Name of resulting merged db')
+    parser.add_argument('other_args', nargs=argparse.REMAINDER)
+    # the search top directory is by default the execution directory
+    args = parser.parse_args()
+    if args.merge_to_db:
+        print("Here we is: writing to %s" % args.merge_to_db)
+        merger = UCIS_DB_Parser()
+        for filename in args.other_args:
+            filename = filename.rstrip("\n\r")
+            if not merger.process_xml(filename):
+                print("Non-UCIS DB XML file skipped [{0}]".format(filename))
+                continue
+        merger.write_merged_db(args.merge_to_db)
+        exit(0) ;
+    else:
+        search_top_dir = os.getcwd()
+        merged_db_name = "coverage_merged_db.xml"
+        if len(args.other_args) > 1: # if specified file path
+            search_top_dir = args.other_args[0]
+        if len(sys.argv) > 2: # if specified merged database name
+            merged_db_name = args.other_args[1]
+        merged_db_path = os.path.join(search_top_dir, merged_db_name)
+        # the master ucis DB which will be "merged" into when parsing additional DBs
+        merger = UCIS_DB_Parser()
 
-    print("Searching for XMLs in top directory: \n{0}\n".format(search_top_dir))
-    merged_db_path = os.path.join(search_top_dir, merged_db_name)
-    
-    # the master ucis DB which will be "merged" into when parsing additional DBs
-    merger = UCIS_DB_Parser()
+        # list of the file names that are successfully parsed and merged
+        filelist = []
+        for filename in find_xmls(search_top_dir):
+            # found file matches the output file; skip it
+            if filename == merged_db_path:
+                print("Warning! Input File: \n{0}\nmatches output target file => will not be parsed!".format(filename))
+                continue
 
-    # list of the file names that are successfully parsed and merged
-    filelist = []
-    for filename in find_xmls(search_top_dir):
-        # found file matches the output file; skip it
-        if filename == merged_db_path:
-            print("Warning! Input File: \n{0}\nmatches output target file => will not be parsed!".format(filename))
-            continue
-        
-        if not merger.process_xml(filename):
-            print("Non-UCIS DB XML file skipped [{0}]".format(filename))
-            continue
-            
-        filelist.append(filename)
-        
-    if not filelist:
-        print("Error! No XML files found under " + search_top_dir)
-        exit(1)
-    
-    merger.write_merged_db(merged_db_path)
+            if not merger.process_xml(filename):
+                print("Non-UCIS DB XML file skipped [{0}]".format(filename))
+                continue
 
-    print("Done!");
-    print("Searching was done recursively under directory: \n{0}\n".format(search_top_dir))
-    
-    print("List of merged UCIS DB files:")
-    for f in filelist:
-        print(f)
+            filelist.append(filename)
+
+        if not filelist:
+            print("Error! No XML files found under " + search_top_dir)
+            exit(1)
+        merger.write_merged_db(merged_db_path)
+
+        print("Done!");
+        print("Searching was done recursively under directory: \n{0}\n".format(search_top_dir))
+
+        print("List of merged UCIS DB files:")
+        for f in filelist:
+            print(f)
         
     print("\nResulted merged UCIS DB can be found at:\n" + merged_db_path)
