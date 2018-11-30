@@ -265,7 +265,7 @@ public:
     return 0;
   }
 
-  virtual void to_xml(std::ostream &stream) const
+  virtual void to_xml(std::ostream &stream) const override
   {
 
     this->print_xml_header(stream, "illegal");
