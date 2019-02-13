@@ -509,6 +509,22 @@ public:
     }
   }
 
+  /*!
+   * \brief Prints data to the given std::stream object
+   * \param file_name Where to print. Returns if empty
+   */
+  static void coverage_save(std::ostream &stream, const fc4sc_format how = fc4sc_format::ucis_xml)
+  {
+    main_controller *global = getter();
+    switch(how) {
+      case fc4sc_format::ucis_xml: {
+	global->print_data_xml(stream);
+	break;
+      }
+      default :
+	break;
+    }
+  }
 };
 
 } // namespace fc4sc
