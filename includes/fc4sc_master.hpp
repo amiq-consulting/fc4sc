@@ -510,8 +510,8 @@ public:
   }
 
   /*!
-   * \brief Prints data to the given std::stream object
-   * \param file_name Where to print. Returns if empty
+   * \brief Prints data to the given std::stream object.
+   * \param stream object where to print.
    */
   static void coverage_save(std::ostream &stream, const fc4sc_format how = fc4sc_format::ucis_xml)
   {
