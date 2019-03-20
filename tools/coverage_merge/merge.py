@@ -452,6 +452,7 @@ if __name__ == "__main__":
             import time
             import watchdog.events
             import watchdog.observers
+            import multiprocessing
             import Queue
             import threading
             import os.path
@@ -463,65 +464,83 @@ if __name__ == "__main__":
             exit(1)
         class MyHandler(watchdog.events.PatternMatchingEventHandler):
             patterns = ["*.xml"]
-            def __init__(self, input_files):
+            def __init__(self, input_queues):
                 watchdog.events.PatternMatchingEventHandler.__init__(self)
-                self.input_files = input_files
-            def process(self, event):
-               self.input_files.put(event.src_path)
+                self.input_queues = input_queues
+                self.num_queues = len(input_queues)
+                self.next_queue = 0
             def on_created(self, event):
-                self.process(event)
-        class MergeJob(threading.Thread):
-            def __init__(self, input_files, merger, merge_done_event):
-                threading.Thread.__init__(self)
-                self.input_files = input_files
-                self.merger = merger
-                self.merge_done_event = merge_done_event
-                self.merge_count = 0
-            def run(self):
-                print("Merge job started")
-                print(datetime.datetime.now())
-                stop_file = args.watchdog_stop_file
-                while (True):
-                    done_file_found = os.path.isfile(stop_file)
-                    qsize = self.input_files.qsize()
-                    if done_file_found and (qsize == 0):
-                        print("Terminating merge job cleanly")
-                        self.merge_done_event.set()
-                        break
-                    try:
-                        self.merger.process_xml(self.input_files.get(block=True,timeout=1))
-                        self.merge_count += 1
-                        if (self.merge_count % args.watchdog_merge_notification_interval) == 0 :
-                            print("FCOV merge count(%d)" % (self.merge_count))
-                            sys.stdout.flush()
-                    except Queue.Empty:
-                        pass
-                print("Merge job complete. writing")
-                print("FCOV merge count(%d)" % (self.merge_count))
-                print(datetime.datetime.now())
-                merger.write_merged_db(args.merge_to_db)
-        input_files = Queue.Queue()
-        merger = UCIS_DB_Parser()
+               self.input_queues[self.next_queue].put(event.src_path)
+               self.next_queue = (self.next_queue + 1)%self.num_queues
+        def merge_process(id, input_files, output_db, stop_file):
+            print("[%03d] Merge process started" % (id))
+            print(datetime.datetime.now())
+            merger = UCIS_DB_Parser()
+            merge_count = 0
+            while (True):
+                done_file_found = os.path.isfile(stop_file)
+                if done_file_found and (input_files.empty()):
+                    print("[%03d] Terminating merge job cleanly" % (id))
+                    break
+                try:
+                    inpt_xml = input_files.get(block=True,timeout=1)
+                    merger.process_xml(inpt_xml)
+                    print("[%03d] got: %s" % (id, inpt_xml))
+                    merge_count += 1
+                    if (merge_count % args.watchdog_merge_notification_interval) == 0 :
+                        print("[%03d][%s]: FCOV merge count total(%d) outstanding(%d)" % (id, datetime.datetime.now(), merge_count, 66))
+                        sys.stdout.flush()
+                except Queue.Empty:
+                    pass
+            print("[%03d] Merge job complete. writing" % (id))
+            print("[%03d][%s] FCOV merge count total(%d)" % (id, datetime.datetime.now(), merge_count))
+            if merge_count > 0:
+                merger.write_merged_db(output_db)
+        # merger = UCIS_DB_Parser()
         observer = watchdog.observers.Observer()
         merge_done_event = threading.Event()
         try:
-            observer.schedule(MyHandler(input_files), args.watchdog, recursive=False)
+            num_procs = multiprocessing.cpu_count()
+            procs = []
+            input_queues = []
+            print("[XXX] Kicking off %d procs" % (num_procs))
+            for proc_id in range(num_procs) :
+               queue = multiprocessing.Queue()
+               input_queues.append(queue)
+               procs.append(multiprocessing.Process(target=merge_process, args=(proc_id, queue, "%s_proc%03d" % (args.merge_to_db, proc_id), args.watchdog_stop_file)))
+            for proc in procs:
+                proc.start()
+            observer.schedule(MyHandler(input_queues), args.watchdog, recursive=False)
             observer.start()
-            merge_job = MergeJob(input_files, merger, merge_done_event)
-            merge_job.start()
-            while not merge_done_event.isSet():
-                time.sleep(1)
-            print("Merge main thread done event detected")
+            print("[XXX] Waiting for stop file") ; sys.stdout.flush()
+            while not os.path.isfile(args.watchdog_stop_file):
+              time.sleep(1)
+            print("[XXX] Merge main thread done event detected") ; sys.stdout.flush()
             observer.stop()
             observer.join()
-            merge_job.join()
-            print("Merge main thread complete")
+            print("[XXX] Merge main thread awaiting merge procs") ; sys.stdout.flush()
+            for merge_proc in procs:
+                merge_proc.join()
+            print("[XXX] Merge main thread completing final merge") ; sys.stdout.flush()
+            merger = UCIS_DB_Parser()
+            proc_merge_files_found = 0
+            for proc_id in range(num_procs):
+                proc_merge_file = "%s_proc%03d" % (args.merge_to_db, proc_id)
+                if os.path.isfile(proc_merge_file):
+                    print("[XXX] Merging %s" % (proc_merge_file))
+                    proc_merge_files_found += 1
+                    merger.process_xml(proc_merge_file)
+            if proc_merge_files_found > 0:
+                print("[XXX] Merge main writing final merge file:%s " % (args.merge_to_db)) ; sys.stdout.flush()
+                merger.write_merged_db(args.merge_to_db)
+            else:
+                print("[XXX] No proc merge files found!!!")
+            print("[XXX] Merge main thread complete") ; sys.stdout.flush()
         except KeyboardInterrupt:
-            print("Wrapping up merge on interrupt with approx %d files remaining" % (input_files.qsize()))
-            print(datetime.datetime.now())
+            print("[XXX] Wrapping up merge on interrupt")
+            print(datetime.datetime.now()) ; sys.stdout.flush()
             observer.stop()
             observer.join()
-            merge_job.join()
         exit(0)
 
     if args.merge_to_db:
