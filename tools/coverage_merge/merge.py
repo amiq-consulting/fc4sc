@@ -202,11 +202,12 @@ class UCIS_DB_Parser:
             return False
         
         if self.mergeDBtree is None:
-            print("First UCIS XML found set as base DB:\n\t{0}\n".format(filename))
+           #print("First UCIS XML found set as base DB:\n\t{0}\n".format(filename))
             self.mergeDBtree = parseTree
             self.mergeDBroot = self.mergeDBtree.getroot()
         else:
-            print("Found XML file: {0}".format(filename))
+           #print("Parsing XML file: {0}".format(filename))
+           #sys.stdout.flush()
             # TODO: update exceptions to be more verbose in function parseXML
             # Needed information:
             # Context: full path to element which produces error on parsing
@@ -247,13 +248,13 @@ class UCIS_DB_Parser:
             # search the same element in the resulted merged database
             searchElement = self.find_merge_element_by_query(xpath_query)
     
-            print("Parsing covergroup type: {0}".format(cgTypeName))
+           #print("Parsing covergroup type: {0}".format(cgTypeName))
             if searchElement is not None:
                 covergroupCoverage = self.find_ucis_element(instanceCoverages, "covergroupCoverage")
                 self.parse_covergroup_type(covergroupCoverage, xpath_query)
-                print("\n")
+               #print("\n")
             else:
-                print("Found new coverage type [{0}]".format(cgTypeName))
+              # print("Found new coverage type [{0}]".format(cgTypeName))
                 mergeParent = self.mergeDBroot
                 mergeParent.append(instanceCoverages) # add the element to the mergedDB under root element
 
@@ -267,11 +268,11 @@ class UCIS_DB_Parser:
             searchElement = self.find_merge_element_by_query(xpath_query)
             
             if searchElement is not None:
-                print ("\t[cgInstance] {0}".format(cgInstName))
+              # print ("\t[cgInstance] {0}".format(cgInstName))
                 self.parse_coverpoints(cgInstance, xpath_query)
                 self.parse_crosses(cgInstance, xpath_query)
             else:
-                print("\tFound new coverage instance [{0}]".format(cgInstName))
+               #print("\tFound new coverage instance [{0}]".format(cgInstName))
                 mergeParent = self.find_merge_element_by_query(parent_query)
                 mergeParent.append(cgInstance) # add the element to the covergroup
 
@@ -284,7 +285,7 @@ class UCIS_DB_Parser:
             # search the same element in the resulted merged database
             searchElement = self.find_merge_element_by_query(xpath_query)
         
-            print ("\t\t[coverpoint] {0}".format(cvpName))
+           #print ("\t\t[coverpoint] {0}".format(cvpName))
             if searchElement is not None:
                 self.parse_coverpoint_bins(coverpoint, xpath_query)
             else:
@@ -301,7 +302,7 @@ class UCIS_DB_Parser:
             if binMergeElement is not None:
                 self.merge_bin_hits(bin, binMergeElement, xpath_query)
             else:
-                print("\t\tFound new bin [{0}]".format(binName))
+               #print("\t\tFound new bin [{0}]".format(binName))
                 mergeParent = self.find_merge_element_by_query(parent_query)
                 mergeParent.append(bin) # add the bin to the covergpoint
         
@@ -334,8 +335,8 @@ class UCIS_DB_Parser:
             binMergeElement.set('alias', str(totalhits))
             mergeContentsElement.set('coverageCount', str(totalhits))
     
-        print ("\t\t\t[bin:{1}] {0} -> {2}".format(
-            bin.get('name'), bin.get('type'), totalhits))    
+       #print ("\t\t\t[bin:{1}] {0} -> {2}".format(
+        #   bin.get('name'), bin.get('type'), totalhits))
         
     def parse_crosses(self, cgInstance, parent_query):
         for cross in self.findall_ucis_children(cgInstance, "cross"):
@@ -344,14 +345,14 @@ class UCIS_DB_Parser:
             xpath_query = parent_query + "/" + self.format_et_query("cross", crossNameAttrib, crossName)
             mergeCrossElement = self.find_merge_element_by_query(xpath_query)
             
-            print ("\t\t[cross] {0}".format(crossName))
+           #print ("\t\t[cross] {0}".format(crossName))
             if mergeCrossElement is None:
                 raise ValueError("cross not present in the mergeDBtree!")
                 continue # skip processing the sub-elements
             
             # skip processing crosses with no hits in the parse XML
             if self.find_ucis_element(cross, 'crossBin') is None:
-                print("\t\t\tParsed cross is empty; skipping...")
+               #print("\t\t\tParsed cross is empty; skipping...")
                 continue
              
             # the number of coverpoints crossed by this element
@@ -405,7 +406,7 @@ class UCIS_DB_Parser:
             for indexesTuple in mergeMap:
                 # create new crossBin element to be added to the cross
                 crossBinElement = ET.fromstring(crossBinString)
-                print("\t\t\t" + str(indexesTuple) + " -> " + str(mergeMap[indexesTuple]))
+               #print("\t\t\t" + str(indexesTuple) + " -> " + str(mergeMap[indexesTuple]))
                 
                 # get a generator for the index elements contained by this crossBin;
                 # we will need to manually iterate through this generator when updating the indexes
@@ -434,7 +435,7 @@ def find_xmls(directory):
             if fnmatch(fname, '*.xml'):
                 filename = os.path.join(rootdir, fname)
                 yield filename
-                
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='FC4SC merge tool')
     parser.add_argument('--merge_to_db',  type=str, help='Name of resulting merged db')
@@ -446,7 +447,7 @@ if __name__ == "__main__":
         for filename in args.other_args:
             filename = filename.rstrip("\n\r")
             if not merger.process_xml(filename):
-                print("Non-UCIS DB XML file skipped [{0}]".format(filename))
+               #print("Non-UCIS DB XML file skipped [{0}]".format(filename))
                 continue
         merger.write_merged_db(args.merge_to_db)
         exit(0) ;
