@@ -438,10 +438,92 @@ def find_xmls(directory):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='FC4SC merge tool')
+    parser.add_argument('--watchdog_supported', action='store_true', help="Test is watchdog is supported by system and sets exit code accordingly")
+    parser.add_argument('--watchdog',  type=str, help='Directory to watch')
+    parser.add_argument('--watchdog_stop_file', type=str, help='File for watchdog to look for to stop monitoring for incoming FCOV files')
+    parser.add_argument('--watchdog_merge_notification_interval', type=int, default=1, help="Interval to notify of merge progress in number of merges. default(1)")
     parser.add_argument('--merge_to_db',  type=str, help='Name of resulting merged db')
     parser.add_argument('other_args', nargs=argparse.REMAINDER)
     # the search top directory is by default the execution directory
     args = parser.parse_args()
+    if args.watchdog or args.watchdog_supported:
+        try:
+            import datetime
+            import time
+            import watchdog.events
+            import watchdog.observers
+            import Queue
+            import threading
+            import os.path
+            if(args.watchdog_supported):
+                exit(0)
+        except Exception as e:
+            if not args.watchdog_supported:
+                raise e
+            exit(1)
+        class MyHandler(watchdog.events.PatternMatchingEventHandler):
+            patterns = ["*.xml"]
+            def __init__(self, input_files):
+                watchdog.events.PatternMatchingEventHandler.__init__(self)
+                self.input_files = input_files
+            def process(self, event):
+               self.input_files.put(event.src_path)
+            def on_created(self, event):
+                self.process(event)
+        class MergeJob(threading.Thread):
+            def __init__(self, input_files, merger, merge_done_event):
+                threading.Thread.__init__(self)
+                self.input_files = input_files
+                self.merger = merger
+                self.merge_done_event = merge_done_event
+                self.merge_count = 0
+            def run(self):
+                print("Merge job started")
+                print(datetime.datetime.now())
+                stop_file = args.watchdog_stop_file
+                while (True):
+                    done_file_found = os.path.isfile(stop_file)
+                    qsize = self.input_files.qsize()
+                    if done_file_found and (qsize == 0):
+                        print("Terminating merge job cleanly")
+                        self.merge_done_event.set()
+                        break
+                    try:
+                        self.merger.process_xml(self.input_files.get(block=True,timeout=1))
+                        self.merge_count += 1
+                        if (self.merge_count % args.watchdog_merge_notification_interval) == 0 :
+                            print("FCOV merge count(%d)" % (self.merge_count))
+                            sys.stdout.flush()
+                    except Queue.Empty:
+                        pass
+                print("Merge job complete. writing")
+                print("FCOV merge count(%d)" % (self.merge_count))
+                print(datetime.datetime.now())
+                merger.write_merged_db(args.merge_to_db)
+        input_files = Queue.Queue()
+        merger = UCIS_DB_Parser()
+        observer = watchdog.observers.Observer()
+        merge_done_event = threading.Event()
+        try:
+            observer.schedule(MyHandler(input_files), args.watchdog, recursive=False)
+            observer.start()
+            merge_job = MergeJob(input_files, merger, merge_done_event)
+            merge_job.start()
+            while not merge_done_event.isSet():
+                time.sleep(1)
+            print("Merge main thread done event detected")
+            observer.stop()
+            observer.join()
+            merge_job.join()
+            print("Merge main thread complete")
+        except KeyboardInterrupt:
+            print("Wrapping up merge on interrupt with approx %d files remaining" % (input_files.qsize()))
+            print(datetime.datetime.now())
+            observer.stop()
+            observer.join()
+            merge_job.join()
+        exit(0)
+
     if args.merge_to_db:
         merger = UCIS_DB_Parser()
         for filename in args.other_args:
