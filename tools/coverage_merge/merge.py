@@ -121,6 +121,32 @@ Merging steps:
     same order
         
 """
+
+DEBUG=False
+DEEP_DEBUG=False
+
+def info(msg, proc_id=None, flush=True):
+    log(msg, proc_id=proc_id, debug=False, flush=flush)
+
+def debug(msg, proc_id=None, flush=True):
+    log(msg, proc_id=proc_id, debug=True, flush=flush)
+
+def deep_debug(msg, proc_id=None, flush=True):
+    if not DEEP_DEBUG:
+        return
+    log(msg, proc_id=proc_id, debug=True, flush=flush)
+
+def log(msg, proc_id=None, debug=True, flush=True):
+    if debug and not DEBUG:
+        return
+    id_str = "---" # Main process
+    verbo_str = ("INFO ","DEBUG")[debug]
+    if proc_id is not None:
+        id_str = "%03d" % (proc_id)
+    print("[%s] [%s] [%s] %s" % (datetime.now(), id_str, verbo_str, msg))
+    if flush:
+        sys.stdout.flush()
+
 class UCIS_DB_Parser:
     def __init__(self):
         self.ucis_ns = 'ucis'
@@ -235,8 +261,6 @@ class UCIS_DB_Parser:
     # searches and returns the first match of the XPath query in the mergeDBtree
     def find_merge_element_by_query(self, xpath_query):
         return self.mergeDBtree.find(xpath_query, self.ns_map)
-
-
 
     def parse_xml(self, parseRoot):
         """ Parse covergroup types """
@@ -449,7 +473,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if args.watchdog or args.watchdog_supported:
         try:
-            import datetime
+            from datetime import datetime
             import time
             import watchdog.events
             import watchdog.observers
@@ -473,29 +497,27 @@ if __name__ == "__main__":
             def on_created(self, event):
                self.input_queues[self.next_queue].put(event.src_path)
                self.next_queue = (self.next_queue + 1)%self.num_queues
-        def merge_process(id, input_files, output_db, stop_file, output_merge_notif_queue):
-            print("[%03d] Merge process started" % (id))
-            print(datetime.datetime.now())
+        def merge_process(proc_id, input_files, output_db, stop_file, output_merge_notif_queue):
+            debug("Merge process started",proc_id)
             merger = UCIS_DB_Parser()
             merge_count = 0
             while (True):
                 done_file_found = os.path.isfile(stop_file)
                 if done_file_found and (input_files.empty()):
-                  # print("[%03d] Terminating merge job cleanly" % (id))
+                    deep_debug("Terminating merge job cleanly", proc_id)
                     break
                 try:
                     inpt_xml = input_files.get(block=True,timeout=1)
                     merger.process_xml(inpt_xml)
-                  # print("[%03d] got: %s" % (id, inpt_xml))
+                    log("got: %s" % (inpt_xml), proc_id)
                     merge_count += 1
                     output_merge_notif_queue.put(1)
                 except Queue.Empty:
                     pass
-          # print("[%03d] Merge job complete. writing" % (id))
-          # print("[%03d][%s] FCOV merge count total(%d)" % (id, datetime.datetime.now(), merge_count))
+            deep_debug("Merge job complete. writing merged db", proc_id)
+            deep_debug("FCOV merge count total(%d)" % merge_count, proc_id)
             if merge_count > 0:
                 merger.write_merged_db(output_db)
-        # merger = UCIS_DB_Parser()
         observer = watchdog.observers.Observer()
         merge_done_event = threading.Event()
         try:
@@ -506,7 +528,6 @@ if __name__ == "__main__":
             procs = []
             merge_notif_queue = multiprocessing.Queue()
             input_queues = []
-          # print("[XXX] Kicking off %d procs" % (num_procs))
             for proc_id in range(num_procs) :
                queue = multiprocessing.Queue()
                input_queues.append(queue)
@@ -515,39 +536,36 @@ if __name__ == "__main__":
                 proc.start()
             observer.schedule(MyHandler(input_queues), args.watchdog, recursive=False)
             observer.start()
-          # print("[XXX] Waiting for stop file") ; sys.stdout.flush()
             completed_merges = 0
             while not os.path.isfile(args.watchdog_stop_file):
               while not merge_notif_queue.empty():
                   merge_notif_queue.get()
                   completed_merges += 1
                   if (completed_merges % args.watchdog_merge_notification_interval) == 0:
-                      print("[XXX][%s] FCOV merge count total(%d)" % (completed_merges))
+                      info("FCOV merge count total(%d)" % completed_merges)
               time.sleep(1)
-          # print("[XXX] Merge main thread done event detected") ; sys.stdout.flush()
+            debug("Merge main thread done event detected")
             observer.stop()
             observer.join()
-          # print("[XXX] Merge main thread awaiting merge procs") ; sys.stdout.flush()
+            debug("Merge main thread awaiting merge procs")
             for merge_proc in procs:
                 merge_proc.join()
-            print("[XXX] Merge main thread completing final merge") ; sys.stdout.flush()
+            info("Merge main thread starting final merge")
             merger = UCIS_DB_Parser()
             proc_merge_files_found = 0
             for proc_id in range(num_procs):
                 proc_merge_file = "%s_proc%03d" % (args.merge_to_db, proc_id)
                 if os.path.isfile(proc_merge_file):
-                    print("[XXX] Merging %s" % (proc_merge_file))
+                    debug("Merging %s" % (proc_merge_file))
                     proc_merge_files_found += 1
                     merger.process_xml(proc_merge_file)
             if proc_merge_files_found > 0:
-                print("[XXX] Merge main writing final merge file:%s " % (args.merge_to_db)) ; sys.stdout.flush()
+                debug("FInal merge complete. writing final merge file: %s " % (args.merge_to_db))
                 merger.write_merged_db(args.merge_to_db)
             else:
-                print("[XXX] No proc merge files found!!!")
-            print("[XXX] Merge main thread complete") ; sys.stdout.flush()
+                debug("No proc merge files found!!!")
         except KeyboardInterrupt:
-            print("[XXX] Wrapping up merge on interrupt")
-            print(datetime.datetime.now()) ; sys.stdout.flush()
+            info("Wrapping up merge on interrupt")
             observer.stop()
             observer.join()
         exit(0)
