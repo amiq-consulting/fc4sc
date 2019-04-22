@@ -1,0 +1,7 @@
+<map id="fc4sc::api_base" name="fc4sc::api_base">
+<area shape="rect" id="node2" href="$classfc4sc_1_1cvg__base.html" title="Base class for covergroups. " alt="" coords="5,83,43,111"/>
+<area shape="rect" id="node4" href="$classfc4sc_1_1cvp__base.html" title="Base class for coverpoints and crosses. " alt="" coords="67,83,105,111"/>
+<area shape="rect" id="node3" href="$classfc4sc_1_1covergroup.html" title="Covergroup option declaration. " alt="" coords="5,161,43,189"/>
+<area shape="rect" id="node5" href="$classfc4sc_1_1coverpoint.html" title="Defines a class for coverpoints. " alt="" coords="67,161,105,189"/>
+<area shape="rect" id="node6" href="$classfc4sc_1_1cross.html" title="Defines a class for crosses. " alt="" coords="130,161,168,189"/>
+</map>

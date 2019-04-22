@@ -1,7 +1,7 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$classfc4sc_1_1cvp__base.html" title="Base class for coverpoints and crosses. " alt="" coords="6,57,122,85"/>
-<area shape="rect" id="node2" href="$classfc4sc_1_1coverpoint.html" title="Defines a class for coverpoints. " alt="" coords="171,5,322,33"/>
-<area shape="rect" id="node3" href="$classfc4sc_1_1cross.html" title="Defines a class for crosses. " alt="" coords="176,57,317,85"/>
-<area shape="rect" id="node4" href="$classfc4sc_1_1cvg__base.html" title="Base class for covergroups. " alt="" coords="189,109,305,137"/>
-<area shape="rect" id="node5" href="$classfc4sc_1_1covergroup.html" title="Covergroup option declaration. " alt="" coords="371,109,496,137"/>
+<area shape="rect" id="node1" href="$classfc4sc_1_1bin__base.html" title="Base class for bins. " alt="" coords="6,57,45,85"/>
+<area shape="rect" id="node2" href="$classfc4sc_1_1bin.html" title="Defines a class for default bins. " alt="" coords="94,57,133,85"/>
+<area shape="rect" id="node3" href="$classfc4sc_1_1bin__array.html" title="fc4sc::bin_array\&lt; T \&gt;" alt="" coords="182,5,221,33"/>
+<area shape="rect" id="node4" href="$classfc4sc_1_1ignore__bin.html" title="fc4sc::ignore_bin\&lt; T \&gt;" alt="" coords="182,57,221,85"/>
+<area shape="rect" id="node5" href="$classfc4sc_1_1illegal__bin.html" title="Defines a class for illegal bins. " alt="" coords="182,109,221,137"/>
 </map>

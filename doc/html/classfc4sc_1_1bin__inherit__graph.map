@@ -1,3 +1,6 @@
 <map id="fc4sc::bin&lt; T &gt;" name="fc4sc::bin&lt; T &gt;">
-<area shape="rect" id="node2" href="$classfc4sc_1_1bin__base.html" title="Base class for bins. " alt="" coords="5,6,117,34"/>
+<area shape="rect" id="node3" href="$classfc4sc_1_1bin__array.html" title="fc4sc::bin_array\&lt; T \&gt;" alt="" coords="5,161,43,189"/>
+<area shape="rect" id="node4" href="$classfc4sc_1_1ignore__bin.html" title="fc4sc::ignore_bin\&lt; T \&gt;" alt="" coords="67,161,105,189"/>
+<area shape="rect" id="node5" href="$classfc4sc_1_1illegal__bin.html" title="Defines a class for illegal bins. " alt="" coords="130,161,168,189"/>
+<area shape="rect" id="node2" href="$classfc4sc_1_1bin__base.html" title="Base class for bins. " alt="" coords="67,6,105,34"/>
 </map>
