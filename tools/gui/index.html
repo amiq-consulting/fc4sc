@@ -26,64 +26,109 @@
 
 <!DOCTYPE html>
 
-<link rel="stylesheet" href="bootstrap/css/bootstrap.css">
-<link rel="stylesheet" href="fc4sc/css/fc4sc.css">
-<link rel="stylesheet" type="text/css" media="print" href="bootstrap/css/bootstrap.css">
+<link rel="stylesheet" href="bootstrap/css/bootstrap.css" />
+<link rel="stylesheet" href="fc4sc/css/fc4sc.css" />
+<link
+    rel="stylesheet"
+    type="text/css"
+    media="print"
+    href="bootstrap/css/bootstrap.css"
+/>
 
 <input class="d-print-none" type="file" id="file-input" />
 
-<h3 id="top" class="d-print-none" >Contents of the file:</h3>
+<h3 id="top" class="d-print-none">Contents of the file:</h3>
 
 <div id="toc_p" class="toc d-print-none">
+    <div id="buttons">
+        <table id="toc_table" style="border:none !important;">
+            <tr style="border:none !important;">
+                <td style="border: none !important">
+                    <h5>Show full</h5>
+                </td>
+                <td style="border: none !important">
+                    <label class="switch">
+                        <input
+                            id="button1"
+                            type="checkbox"
+                            onclick="button_change(1)"
+                        />
+                        <span class="slider round"></span>
+                    </label>
+                </td>
+            </tr>
+            <tr style="border:none !important;">
+                <td style="border: none !important">
+                    <h5>Show partial</h5>
+                </td>
+                <td style="border: none !important">
+                    <label class="switch">
+                        <input
+                            id="button2"
+                            type="checkbox"
+                            onclick="button_change(2)"
+                        />
+                        <span class="slider round"></span>
+                    </label>
+                </td>
+            </tr>
+            <tr style="border:none !important;">
+                <td style="border: none !important">
+                    <h5>Show empty</h5>
+                </td>
+                <td style="border: none !important">
+                    <label class="switch">
+                        <input
+                            id="button3"
+                            type="checkbox"
+                            onclick="button_change(3)"
+                        />
+                        <span class="slider round"></span>
+                    </label>
+                </td>
+            </tr>
+        </table>
+    </div>
 
-  <div id="buttons" > 
-    <table id="toc_table" style="border:none !important;">
-      <tr style="border:none !important;">
-        <td style="border: none !important">
-          <h5> Show full </h5>
-        </td>
-        <td style="border: none !important">
-          <label class="switch">
-            <input id="button1" type="checkbox" onclick="button_change(1)">
-            <span class="slider round"></span>
-          </label>
-        </td>
-      </tr>
-      <tr style="border:none !important;">
-        <td style="border: none !important">
-          <h5> Show partial </h5>
-        </td>
-        <td style="border: none !important">
-          <label class="switch">
-            <input id="button2" type="checkbox" onclick="button_change(2)">
-            <span class="slider round"></span>
-          </label>
-        </td>
-      </tr>
-      <tr style="border:none !important;">
-        <td style="border: none !important">
-          <h5> Show empty </h5>
-        </td>
-        <td style="border: none !important">
-          <label class="switch">
-            <input id="button3" type="checkbox" onclick="button_change(3)">
-            <span class="slider round"></span>
-          </label>
-        </td>
-      </tr>
-    </table>  
-  </div>
+    <div id="toc_header"></div>
 
-  <div id ="toc_header"> 
-  </div>
-
-  <div id="toc" class="toc_types"> 
-  </div>
-
+    <div id="toc" class="toc_types"></div>
 </div>
 
+<pre id="file-content" class="my_div"></pre>
 
-<pre id="file-content"  class="my_div"></pre>
+<script type="text/javascript">
+    var cross_bins = [];
+
+    var pass_bin = 0;
+    var fail_bin = 0;
+    var cvp_procent = 0;
+    var cvp_bin_count = 0;
+
+    var cvp_procs = [];
+    var cvp_weights = [];
+    var cg_inst_lines = 0;
+
+    var global_cvg_tree = [];
+    var global_cvp_tree = [];
+    var global_bin_tree = [];
+    var global_cvg_type = [];
+
+    var element1 = document.getElementById("file-content");
+
+    // button_change.state = 1 => is active
+    var SizeEnum = {
+        DEEPER: 1,
+        RETURN: 2
+    };
+
+    var Covered = {
+        EXCLUDED: 1,
+        NOTHING: 2,
+        PARTIAL: 3,
+        COMPLETE: 4
+    };
+</script>
 
 <script type="text/javascript" src="fc4sc/js/bin.js"></script>
 <script type="text/javascript" src="fc4sc/js/bin_cross.js"></script>
@@ -93,323 +138,280 @@
 <script type="text/javascript" src="fc4sc/js/cg_type.js"></script>
 <!-- <script type="text/javascript" src="fc4sc/js/buttons.js"></script> -->
 <script type="text/javascript">
-
-  var cross_bins = [];
-
-  var pass_bin = 0;
-  var fail_bin = 0;
-  var cvp_procent = 0;
-  var cvp_bin_count = 0;
-
-  var cvp_procs = [];
-  var cvp_weights = [];
-  var cg_inst_lines = 0;
-
-  var global_cvg_tree = [];
-  var global_cvp_tree = [];
-  var global_bin_tree = [];
-  var global_cvg_type = [];
-
-  var element1 = document.getElementById('file-content');
-
-  // button_change.state = 1 => is active
-  var SizeEnum = {
-    DEEPER: 1,
-    RETURN: 2,
-  };
-
-  var Covered = {
-    EXCLUDED: 1,
-    NOTHING : 2,
-    PARTIAL : 3,
-    COMPLETE: 4
-  }
-
-  function takeAction (node) {
-
-    switch(node.nodeName) {
-      case "ucis:coverpointBin" : {
-        if (node.getAttribute("type") !== "ignore") {
-          global_bin_tree.push(new Bin(node));
+    function takeAction(node) {
+        switch (node.nodeName) {
+            case "ucis:coverpointBin": {
+                if (node.getAttribute("type") !== "ignore") {
+                    global_bin_tree.push(new Bin(node));
+                }
+                return SizeEnum.RETURN;
+            }
+            case "ucis:crossBin": {
+                cross_bins.push(new CrossBin(node));
+                return SizeEnum.RETURN;
+            }
+            case "ucis:cgInstance": {
+                return SizeEnum.DEEPER;
+            }
+            default: {
+                return SizeEnum.DEEPER;
+            }
         }
-        return SizeEnum.RETURN;  
-      }
-      case "ucis:crossBin" : { cross_bins.push(new CrossBin(node)); return SizeEnum.RETURN;  }
-      case "ucis:cgInstance" : { return SizeEnum.DEEPER; }
-      default: { return SizeEnum.DEEPER; }
-    };
-
-  }
-
-  function nodeMarkup (node, where) {
-
-    var ret = SizeEnum.RETURN;
-
-    if (node.nodeType == 1) {
-      takeStartAction(node);
-      ret = takeAction(node);
     }
 
-    if (ret == SizeEnum.DEEPER) {
+    function nodeMarkup(node, where) {
+        var ret = SizeEnum.RETURN;
 
-      for (var index = 0; index < node.childNodes.length; ++index) {
-        nodeMarkup(node.childNodes[index]);
-      }
+        if (node.nodeType == 1) {
+            takeStartAction(node);
+            ret = takeAction(node);
+        }
 
+        if (ret == SizeEnum.DEEPER) {
+            for (var index = 0; index < node.childNodes.length; ++index) {
+                nodeMarkup(node.childNodes[index]);
+            }
+        }
+
+        if (node.nodeType == 1) takeEndAction(node, where);
     }
 
-    if (node.nodeType == 1)
-      takeEndAction(node, where);
+    function takeStartAction(node) {
+        switch (node.nodeName) {
+            case "ucis:cgInstance": {
+                cg_inst_lines = 0;
+                cvp_procs = [];
+                cvp_weights = [];
 
-  };
-
-  function takeStartAction (node) {
-
-    switch(node.nodeName) {
-      case "ucis:cgInstance": { 
-        cg_inst_lines = 0;
-        cvp_procs = [];
-        cvp_weights = [];
-
-        break; 
-      }
-      case "ucis:cross" : {
-        cg_inst_lines += 3;
-        break;
-      }
-      case "ucis:coverpoint": { 
-        cg_inst_lines += 2;
-        break;
-      }
-      default : break;
-    };   
-
-  }
-
-
-  function takeEndAction (node, where) {
-
-    switch(node.nodeName) {
-      case "ucis:cgInstance": {
-
-        global_cvg_tree.push(new Cg(cvp_procs, cvp_weights, global_cvp_tree, cg_inst_lines, {node: node}));
-
-        global_cvp_tree = [];
-        global_bin_tree = [];
-        cross_bins = [];
-
-
-        break;
-      }
-      case "ucis:cross": {
-
-        var cross = new Cross(node, cross_bins);
-
-        cg_inst_lines += cross_bins.length;
-
-        cvp_weights.push(cross.cvp_weight);
-        cvp_procs.push(cross.cvp_procent);
-
-        global_cvp_tree.push(cross);
-
-        cross_bins = [];
-
-        break;
-      }
-      case "ucis:coverpoint": {
-
-        var cvp = new Coverpoint(node, pass_bin, fail_bin, global_bin_tree);
-
-        cvp_procs.push(cvp.cvp_procent);
-        cvp_weights.push(cvp.cvp_weight);
-        cg_inst_lines += pass_bin + fail_bin;
-
-        global_cvp_tree.push(cvp);
-
-        global_bin_tree = [];
-        pass_bin = 0;
-        fail_bin = 0;
-
-      };
-      default : break;
-
-    };
-
-  }
-
-function readSingleFile(e) {
-
-    var element = document.getElementById('file-content');
-    element.innerHTML = "";
-
-    var element = document.getElementById('toc');
-    var file = e.target.files[0];
-    if (!file) {
-      return;
-    }
-    var reader = new FileReader();
-    reader.onload = function(e) {
-      var contents = e.target.result;
-      displayContents(contents);
-    };
-
-    reader.readAsText(file);
-  }
-
-  function displayContents(contents) {
-
-    var parseXml = function(xmlStr) {
-      return ( new window.DOMParser() ).parseFromString(xmlStr, "text/xml");
-    };
-
-    var xmlFile = parseXml(contents);  
-
-
-    document.getElementById("button1").checked = true;
-    document.getElementById("button2").checked = true;
-    document.getElementById("button3").checked = true;
-
-
-    var element1 = document.getElementById('file-content');
-    var toc = document.getElementById('toc_header');
-
-    toc.innerHTML = "<br><h4>Covergroup types</h4>\t\t <a href=\"#top\">Back to top </a> ";
-
-    toc = document.getElementById('toc');    
-
-    toc.innerHTML = "<ul>";
-
-    var covergroup_type = xmlFile.getElementsByTagName("ucis:instanceCoverages"); 
-
-    for (var it = 0; it < covergroup_type.length; ++it) {
-
-      var handle = covergroup_type[it];
-
-
-      global_cvg_tree = [];
-
-      nodeMarkup(handle);
-
-      var new_type = new CgType(handle, global_cvg_tree);
-      global_cvg_type.push(new_type);
-
-      // element1.innerHTML += new_type.stringify();
-      new_type.stringify(element1);
-      
-      
-      toc.innerHTML += new_type.toc_stringify();
-      
-      toc.innerHTML += "</ul>";
-
-
-
+                break;
+            }
+            case "ucis:cross": {
+                cg_inst_lines += 3;
+                break;
+            }
+            case "ucis:coverpoint": {
+                cg_inst_lines += 2;
+                break;
+            }
+            default:
+                break;
+        }
     }
 
-  }
+    function takeEndAction(node, where) {
+        switch (node.nodeName) {
+            case "ucis:cgInstance": {
+                global_cvg_tree.push(
+                    new Cg(
+                        cvp_procs,
+                        cvp_weights,
+                        global_cvp_tree,
+                        cg_inst_lines,
+                        { node: node }
+                    )
+                );
 
+                global_cvp_tree = [];
+                global_bin_tree = [];
+                cross_bins = [];
 
+                break;
+            }
+            case "ucis:cross": {
+                var cross = new Cross(node, cross_bins);
 
-  document.getElementById('file-input').addEventListener('change', readSingleFile, false);
+                cg_inst_lines += cross_bins.length;
 
-  function button_change(index) {
+                cvp_weights.push(cross.cvp_weight);
+                cvp_procs.push(cross.cvp_procent);
 
-if ( typeof button_change.state == 'undefined' ) {
-  button_change.state = [true, true, true];
-}
+                global_cvp_tree.push(cross);
 
+                cross_bins = [];
 
-if (global_cvg_type.length == 0) {
-  alert("No data loaded!");
-  document.getElementById("button1").checked = false;
-  document.getElementById("button2").checked = false;
-  document.getElementById("button3").checked = false;
-  return;
-}
+                break;
+            }
+            case "ucis:coverpoint": {
+                var cvp = new Coverpoint(
+                    node,
+                    pass_bin,
+                    fail_bin,
+                    global_bin_tree
+                );
 
-index = index - 1;
+                cvp_procs.push(cvp.cvp_procent);
+                cvp_weights.push(cvp.cvp_weight);
+                cg_inst_lines += pass_bin + fail_bin;
 
-button_change.state[index] = !button_change.state[index];
+                global_cvp_tree.push(cvp);
 
-var printed = [];
-element1.innerHTML = "";
-
-var toc = document.getElementById('toc_header');
-
-toc.innerHTML = "<br><h4>Covergroup types</h4><ul>";
-
-
-toc = document.getElementById('toc');    
-toc.innerHTML = "";
-
-for (var it1 = 0; it1 < global_cvg_type.length; ++it1) {
-  var type = global_cvg_type[it1];
-
-  var insts_printed = [];
-
-  for (var it2 = 0; it2 < type.cg_insts.length; ++it2) {
-    var inst = type.cg_insts[it2];
-
-    var cvps = [];
-    var procs = [];
-    var cvp_weights = [];
-    var count = 0;
-    for (var it3 =0; it3 < inst.cvg_cvps.length; ++it3) {
-      var cvp = inst.cvg_cvps[it3];
-
-      if (
-        (button_change.state[0] == true && cvp.cvp_procent == 100) || 
-        (button_change.state[2] == true && cvp.cvp_procent == 0.00) ||
-        (button_change.state[1] == true && cvp.cvp_procent < 100 && cvp.cvp_procent > 0)
-        ) 
-      {
-
-        cvps.push(cvp);
-        procs.push(cvp.cvp_procent);
-        cvp_weights.push(cvp.cvp_weight);
-        count += cvp.cg_inst_lines;
-      }
-
+                global_bin_tree = [];
+                pass_bin = 0;
+                fail_bin = 0;
+            }
+            default:
+                break;
+        }
     }
 
-    if (cvps.length != 0) {
-      insts_printed.push(new Cg(procs, cvp_weights, cvps, count, {name : inst.name, style : inst.style}));
+    function readSingleFile(e) {
+        var element = document.getElementById("file-content");
+        element.innerHTML = "";
+
+        var element = document.getElementById("toc");
+        var file = e.target.files[0];
+        if (!file) {
+            return;
+        }
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var contents = e.target.result;
+            displayContents(contents);
+        };
+
+        reader.readAsText(file);
     }
-  }
 
+    function displayContents(contents) {
+        var parseXml = function(xmlStr) {
+            return new window.DOMParser().parseFromString(xmlStr, "text/xml");
+        };
 
-  if (insts_printed.length != 0) {
-    var print_type = new CgType(String(type.name), insts_printed);
-    element1.innerHTML += print_type.stringify();
-    toc.innerHTML += print_type.toc_stringify();
+        var xmlFile = parseXml(contents);
 
-  }
-  
+        document.getElementById("button1").checked = true;
+        document.getElementById("button2").checked = true;
+        document.getElementById("button3").checked = true;
 
-}
+        // var element1 = document.getElementById("file-content");
+        var toc = document.getElementById("toc_header");
 
-toc.innerHTML += "<li><a href=\"#top\">Back to top </a></li>";    
-toc.innerHTML += "</ul>";
-toc.innerHTML += "<br>";
+        toc.innerHTML =
+            '<br><h4>Covergroup types</h4>\t\t <a href="#top">Back to top </a> ';
 
-}
+        toc = document.getElementById("toc");
 
+        toc.innerHTML = "<ul>";
 
-function print_options(node) {
+        var covergroup_type = xmlFile.getElementsByTagName(
+            "ucis:instanceCoverages"
+        );
 
-var name = node.attributes ;
-var result = "<table>";
+        for (var it = 0; it < covergroup_type.length; ++it) {
+            var handle = covergroup_type[it];
 
-for (var it=0; it < node.attributes.length; ++it) {
-  result += "<tr>";
-  result += "<td>" + node.attributes[it].name + "</td>";
-  result += "<td>    </td>";
-  result += "<td>\"" + node.attributes[it].value + "\"</td>";
-  result += "</tr>";
-}
-return result + "</table>";
-}
+            global_cvg_tree = [];
 
+            nodeMarkup(handle);
 
+            var new_type = new CgType(handle, global_cvg_tree);
+            global_cvg_type.push(new_type);
+
+            element1.innerHTML += new_type.stringify();
+            // new_type.stringify(element1);
+
+            toc.innerHTML += new_type.toc_stringify();
+
+            toc.innerHTML += "</ul>";
+        }
+    }
+
+    document
+        .getElementById("file-input")
+        .addEventListener("change", readSingleFile, false);
+
+    function button_change(index) {
+        if (typeof button_change.state == "undefined") {
+            button_change.state = [true, true, true];
+        }
+
+        if (global_cvg_type.length == 0) {
+            alert("No data loaded!");
+            document.getElementById("button1").checked = false;
+            document.getElementById("button2").checked = false;
+            document.getElementById("button3").checked = false;
+            return;
+        }
+
+        index = index - 1;
+
+        button_change.state[index] = !button_change.state[index];
+
+        var printed = [];
+        console.log(element1);
+        element1.innerHTML = "";
+
+        var toc = document.getElementById("toc_header");
+
+        toc.innerHTML = "<br><h4>Covergroup types</h4><ul>";
+
+        toc = document.getElementById("toc");
+        toc.innerHTML = "";
+
+        for (var it1 = 0; it1 < global_cvg_type.length; ++it1) {
+            var type = global_cvg_type[it1];
+
+            var insts_printed = [];
+
+            for (var it2 = 0; it2 < type.cg_insts.length; ++it2) {
+                var inst = type.cg_insts[it2];
+
+                var cvps = [];
+                var procs = [];
+                var cvp_weights = [];
+                var count = 0;
+                for (var it3 = 0; it3 < inst.cvg_cvps.length; ++it3) {
+                    var cvp = inst.cvg_cvps[it3];
+
+                    if (
+                        (button_change.state[0] == true &&
+                            cvp.cvp_procent == 100) ||
+                        (button_change.state[2] == true &&
+                            cvp.cvp_procent == 0.0) ||
+                        (button_change.state[1] == true &&
+                            cvp.cvp_procent < 100 &&
+                            cvp.cvp_procent > 0)
+                    ) {
+                        cvps.push(cvp);
+                        procs.push(cvp.cvp_procent);
+                        cvp_weights.push(cvp.cvp_weight);
+                        count += cvp.cg_inst_lines;
+                    }
+                }
+
+                if (cvps.length != 0) {
+                    insts_printed.push(
+                        new Cg(procs, cvp_weights, cvps, count, {
+                            name: inst.name,
+                            style: inst.style
+                        })
+                    );
+                }
+            }
+
+            if (insts_printed.length != 0) {
+                var print_type = new CgType(String(type.name), insts_printed);
+                element1.innerHTML += print_type.stringify();
+                toc.innerHTML += print_type.toc_stringify();
+            }
+        }
+
+        toc.innerHTML += '<li><a href="#top">Back to top </a></li>';
+        toc.innerHTML += "</ul>";
+        toc.innerHTML += "<br>";
+    }
+
+    function print_options(node) {
+        var name = node.attributes;
+        var result = "<table>";
+
+        for (var it = 0; it < node.attributes.length; ++it) {
+            result += "<tr>";
+            result += "<td>" + node.attributes[it].name + "</td>";
+            result += "<td>    </td>";
+            result += '<td>"' + node.attributes[it].value + '"</td>';
+            result += "</tr>";
+        }
+        return result + "</table>";
+    }
 </script>
-
-
