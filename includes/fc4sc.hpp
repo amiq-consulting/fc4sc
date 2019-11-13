@@ -46,6 +46,7 @@ namespace fc4sc {
 };
 
 #include "fc4sc_base.hpp"
+#include "fc4sc_master.hpp"
 #include "fc4sc_intervals.hpp"
 #include "fc4sc_options.hpp"
 #include "fc4sc_binsof.hpp"

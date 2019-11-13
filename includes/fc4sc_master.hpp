@@ -492,21 +492,20 @@ public:
   static void coverage_save(const std::string &file_name = "", const fc4sc_format how = fc4sc_format::ucis_xml)
   {
     if (file_name.empty()) {
-      std::cerr << "FC4SC " << __FUNCTION__ << " was passed empty string\n";
-      std::cerr << "\tReturning\n";
+      std::cerr << "FC4SC " << __FUNCTION__ << ": Error! Function was passed "
+	  "empty string as the file name\n";
+      std::cerr << "COVERAGE DB WAS NOT BE SAVED!" << std::endl;
       return;
     }
 
-    main_controller *global = getter();
-    switch(how) {
-      case fc4sc_format::ucis_xml: {
-        std::ofstream f(file_name);
-        global->print_data_xml(f);
-        break;
-      }
-      default :
-        break;
+    std::ofstream file(file_name);
+    if (!file) {
+	std::cerr << "FC4SC " << __FUNCTION__ << ": Error! Could not open file ["
+	    << file_name << "] for writing!" << std::endl;
+	std::cerr << "COVERAGE DB WAS NOT BE SAVED!" << std::endl;
+	return;
     }
+    fc4sc::global::coverage_save(file, how);
   }
 
   /*!
@@ -524,6 +523,27 @@ public:
       default :
 	break;
     }
+  }
+
+  /*!
+   *  \brief Function which returns a string where all XML special characters are escaped.
+   *
+   *  \param in The input string
+   */
+  static std::string escape_xml_chars(const std::string &in) {
+    std::string out;
+
+    for (std::string::size_type idx = 0; idx < in.length(); idx++) {
+      switch(in[idx]) {
+        case '<': out += "&lt;"; break;
+        case '>': out += "&gt;"; break;
+        case '&': out += "&amp;"; break;
+        case '\"': out += "&quot;"; break;
+        case '\'': out += "&apos;"; break;
+        default: out += in[idx];
+      }
+    }
+    return out;
   }
 };
 

@@ -34,7 +34,6 @@
 #define FC4SC_COVERGROUP_HPP
 
 #include "fc4sc_base.hpp"
-#include "fc4sc_master.hpp"
 
 #include <unordered_map>
 #include <typeinfo>
@@ -237,7 +236,7 @@ public:
 
     stream << option << "\n";
 
-    stream << "<ucis:cgId cgName=\"" << this->name << "\" ";
+    stream << "<ucis:cgId cgName=\"" << fc4sc::global::escape_xml_chars(this->name) << "\" ";
     stream << "moduleName=\""
            << "INST_PARENT_MODULE"
            << "\">\n";

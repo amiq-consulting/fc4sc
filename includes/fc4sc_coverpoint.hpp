@@ -366,11 +366,11 @@ public:
   virtual void to_xml(std::ostream &stream) const
   {
     stream << "<ucis:coverpoint ";
-    stream << "name=\"" << this->name << "\" ";
+    stream << "name=\"" << fc4sc::global::escape_xml_chars(this->name) << "\" ";
     stream << "key=\""
            << "KEY"
            << "\" ";
-    stream << "exprString=\"" << this->sample_expression_str << "\"";
+    stream << "exprString=\"" << fc4sc::global::escape_xml_chars(this->sample_expression_str) << "\"";
     stream << ">\n";
 
     stream << option << "\n";

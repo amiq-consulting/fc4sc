@@ -259,7 +259,7 @@ public:
   {
 
     stream << "<ucis:cross ";
-    stream << "name=\"" << this->name << "\" ";
+    stream << "name=\"" << fc4sc::global::escape_xml_chars(this->name) << "\" ";
     stream << "key=\""
            << "KEY"
            << "\" ";
