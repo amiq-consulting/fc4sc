@@ -335,6 +335,25 @@ public:
   }
 
   /*!
+   *  \brief Retrieves the number of hits of the bin with a particular index.
+   *  The index order is the same as in the declaration of the coverpoint.
+   *  This function will throw an error if the bin count is out of bounds!
+   *  \returns the hit counter of a specified bin (by bin index).
+   */
+  uint64_t get_bin_hit_count(uint32_t bin_index) const
+  {
+    if (bin_index >= bins.size()) {// bin index out of bounds
+      std::cerr << "FC4SC " << __FUNCTION__ << ": Error! bin_index argument "
+          "is out of bounds. Passed value: [" << bin_index << "]" << std::endl
+          << "Coverpoint [" << this->name << "] has [" << bins.size()
+          << "] bins!" << std::endl;
+      return 0;
+    }
+
+    return (this->bins[bin_index].get_hitcount());
+  }
+
+  /*!
    *  \brief Changes the instances name
    *  \param new_name New associated name
    */

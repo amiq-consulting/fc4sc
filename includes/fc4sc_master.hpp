@@ -500,10 +500,10 @@ public:
 
     std::ofstream file(file_name);
     if (!file) {
-	std::cerr << "FC4SC " << __FUNCTION__ << ": Error! Could not open file ["
-	    << file_name << "] for writing!" << std::endl;
-	std::cerr << "COVERAGE DB WAS NOT BE SAVED!" << std::endl;
-	return;
+      std::cerr << "FC4SC " << __FUNCTION__ << ": Error! Could not open file ["
+        << file_name << "] for writing!" << std::endl;
+      std::cerr << "COVERAGE DB WAS NOT BE SAVED!" << std::endl;
+      return;
     }
     fc4sc::global::coverage_save(file, how);
   }
@@ -516,10 +516,10 @@ public:
   {
     main_controller *global = getter();
     switch(how) {
-      case fc4sc_format::ucis_xml: {
-	global->print_data_xml(stream);
-	break;
-      }
+      case fc4sc_format::ucis_xml:
+        global->print_data_xml(stream);
+        break;
+
       default :
 	break;
     }
