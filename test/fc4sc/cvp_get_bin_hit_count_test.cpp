@@ -48,20 +48,20 @@ TEST(cvp_get_bin_hit_count_test, basic) {
   cvp_get_bin_hit_count_test cvg;
 
   // nitially, hit count should be 0
-  EXPECT_EQ(uint32_t(cvg.cvp_example.get_bin_hit_count(0)), 0);
-  EXPECT_EQ(uint32_t(cvg.cvp_example.get_bin_hit_count(0)), 0);
+  EXPECT_EQ(int32_t(cvg.cvp_example.get_bin_hit_count(0)), 0);
+  EXPECT_EQ(int32_t(cvg.cvp_example.get_bin_hit_count(0)), 0);
 
   // hits should increase every 2 samples
   cvg.sample();
-  EXPECT_EQ(uint32_t(cvg.cvp_example.get_bin_hit_count(0)), 0);
+  EXPECT_EQ(int32_t(cvg.cvp_example.get_bin_hit_count(0)), 0);
   cvg.sample();
-  EXPECT_EQ(uint32_t(cvg.cvp_example.get_bin_hit_count(0)), 1);
+  EXPECT_EQ(int32_t(cvg.cvp_example.get_bin_hit_count(0)), 1);
   cvg.sample();
-  EXPECT_EQ(uint32_t(cvg.cvp_example.get_bin_hit_count(0)), 1);
+  EXPECT_EQ(int32_t(cvg.cvp_example.get_bin_hit_count(0)), 1);
   cvg.sample();
-  EXPECT_EQ(uint32_t(cvg.cvp_example.get_bin_hit_count(0)), 2);
+  EXPECT_EQ(int32_t(cvg.cvp_example.get_bin_hit_count(0)), 2);
   cvg.sample();
-  EXPECT_EQ(uint32_t(cvg.cvp_example.get_bin_hit_count(0)), 2);
+  EXPECT_EQ(int32_t(cvg.cvp_example.get_bin_hit_count(0)), 2);
   cvg.sample();
-  EXPECT_EQ(uint32_t(cvg.cvp_example.get_bin_hit_count(0)), 3);
+  EXPECT_EQ(int32_t(cvg.cvp_example.get_bin_hit_count(0)), 3);
 }
