@@ -32,9 +32,8 @@ function Cg(cvp_procs, cvp_weights, global_cvp_tree, cg_inst_lines, choice) {
     this.w_sum += Number(cvp_weights[i]);
   }
 
-  this.cvg_proc = this.cvg_proc / this.w_sum;       
+  this.cvg_proc = this.cvg_proc / this.w_sum;
   this.cvg_proc = this.cvg_proc.toFixed(2);
-
 
   if ('node' in choice) {
     var node = choice['node'];

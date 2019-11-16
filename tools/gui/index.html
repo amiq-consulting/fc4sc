@@ -49,9 +49,9 @@
                 <td style="border: none !important">
                     <label class="switch">
                         <input
-                            id="button1"
+                            id="show_full"
                             type="checkbox"
-                            onclick="button_change(1)"
+                            onclick="button_change(0)"
                         />
                         <span class="slider round"></span>
                     </label>
@@ -64,9 +64,9 @@
                 <td style="border: none !important">
                     <label class="switch">
                         <input
-                            id="button2"
+                            id="show_empty"
                             type="checkbox"
-                            onclick="button_change(2)"
+                            onclick="button_change(1)"
                         />
                         <span class="slider round"></span>
                     </label>
@@ -79,9 +79,9 @@
                 <td style="border: none !important">
                     <label class="switch">
                         <input
-                            id="button3"
+                            id="show_partial"
                             type="checkbox"
-                            onclick="button_change(3)"
+                            onclick="button_change(2)"
                         />
                         <span class="slider round"></span>
                     </label>
@@ -97,46 +97,12 @@
 
 <pre id="file-content" class="my_div"></pre>
 
-<script type="text/javascript">
-    var cross_bins = [];
-
-    var pass_bin = 0;
-    var fail_bin = 0;
-    var cvp_procent = 0;
-    var cvp_bin_count = 0;
-
-    var cvp_procs = [];
-    var cvp_weights = [];
-    var cg_inst_lines = 0;
-
-    var global_cvg_tree = [];
-    var global_cvp_tree = [];
-    var global_bin_tree = [];
-    var global_cvg_type = [];
-
-    var element1 = document.getElementById("file-content");
-
-    // button_change.state = 1 => is active
-    var SizeEnum = {
-        DEEPER: 1,
-        RETURN: 2
-    };
-
-    var Covered = {
-        EXCLUDED: 1,
-        NOTHING: 2,
-        PARTIAL: 3,
-        COMPLETE: 4
-    };
-</script>
-
 <script type="text/javascript" src="fc4sc/js/bin.js"></script>
 <script type="text/javascript" src="fc4sc/js/bin_cross.js"></script>
 <script type="text/javascript" src="fc4sc/js/cvp.js"></script>
 <script type="text/javascript" src="fc4sc/js/cross.js"></script>
 <script type="text/javascript" src="fc4sc/js/cg.js"></script>
 <script type="text/javascript" src="fc4sc/js/cg_type.js"></script>
-<!-- <script type="text/javascript" src="fc4sc/js/buttons.js"></script> -->
 <script type="text/javascript">
     function takeAction(node) {
         switch (node.nodeName) {
@@ -253,154 +219,86 @@
                 break;
         }
     }
+    
+    function updateWindowText(covergroupTypes) {
+	    var toc_header = document.getElementById("toc_header");
+        var toc = document.getElementById("toc");
+        var main_content = document.getElementById("file-content");
+        
+        toc_header.innerHTML = '<br><h4>Covergroup types</h4>\t\t <a href="#top">Back to top </a> ';
+        toc.innerHTML = "";
+        main_content.innerHTML = "";
 
-    function readSingleFile(e) {
-        var element = document.getElementById("file-content");
-        element.innerHTML = "";
-
-        var element = document.getElementById("toc");
-        var file = e.target.files[0];
-        if (!file) {
-            return;
+        for (var i = 0 ; i < covergroupTypes.length; ++i) {
+            main_content.innerHTML += covergroupTypes[i].stringify();
+            toc.innerHTML += covergroupTypes[i].toc_stringify() + "<br>";
         }
-        var reader = new FileReader();
-        reader.onload = function(e) {
-            var contents = e.target.result;
-            displayContents(contents);
-        };
-
-        reader.readAsText(file);
     }
 
-    function displayContents(contents) {
+    function displayLoadedFileContents(contents) {
         var parseXml = function(xmlStr) {
             return new window.DOMParser().parseFromString(xmlStr, "text/xml");
         };
 
         var xmlFile = parseXml(contents);
+        
+        for (var i = 0; i < global_buttons.length; ++i) {
+            global_buttons[i].checked = true;
+        }
+        global_cvg_type = []; // clear pervious data
+        var cgTypeElement = xmlFile.getElementsByTagName("ucis:instanceCoverages");
 
-        document.getElementById("button1").checked = true;
-        document.getElementById("button2").checked = true;
-        document.getElementById("button3").checked = true;
-
-        // var element1 = document.getElementById("file-content");
-        var toc = document.getElementById("toc_header");
-
-        toc.innerHTML =
-            '<br><h4>Covergroup types</h4>\t\t <a href="#top">Back to top </a> ';
-
-        toc = document.getElementById("toc");
-
-        toc.innerHTML = "<ul>";
-
-        var covergroup_type = xmlFile.getElementsByTagName(
-            "ucis:instanceCoverages"
-        );
-
-        for (var it = 0; it < covergroup_type.length; ++it) {
-            var handle = covergroup_type[it];
-
+        for (var it = 0; it < cgTypeElement.length; ++it) {
+            var cgType = cgTypeElement[it];
             global_cvg_tree = [];
-
-            nodeMarkup(handle);
-
-            var new_type = new CgType(handle, global_cvg_tree);
-            global_cvg_type.push(new_type);
-
-            element1.innerHTML += new_type.stringify();
-            // new_type.stringify(element1);
-
-            toc.innerHTML += new_type.toc_stringify();
-
-            toc.innerHTML += "</ul>";
+            nodeMarkup(cgType);
+            global_cvg_type.push(new CgType(cgType, global_cvg_tree));
         }
+        updateWindowText(global_cvg_type);
     }
-
-    document
-        .getElementById("file-input")
-        .addEventListener("change", readSingleFile, false);
-
-    function button_change(index) {
-        if (typeof button_change.state == "undefined") {
-            button_change.state = [true, true, true];
-        }
-
-        if (global_cvg_type.length == 0) {
-            alert("No data loaded!");
-            document.getElementById("button1").checked = false;
-            document.getElementById("button2").checked = false;
-            document.getElementById("button3").checked = false;
-            return;
-        }
-
-        index = index - 1;
-
-        button_change.state[index] = !button_change.state[index];
-
-        var printed = [];
-        console.log(element1);
-        element1.innerHTML = "";
-
-        var toc = document.getElementById("toc_header");
-
-        toc.innerHTML = "<br><h4>Covergroup types</h4><ul>";
-
-        toc = document.getElementById("toc");
-        toc.innerHTML = "";
-
+    
+    function filter_global_cvg_types(show_full, show_partial, show_empty) {
+	    if (!show_full && !show_empty && !show_partial)
+            return [];
+        if (show_full && show_empty && show_partial)
+            return global_cvg_type;
+    
+        var filteredCgTypes = []
         for (var it1 = 0; it1 < global_cvg_type.length; ++it1) {
             var type = global_cvg_type[it1];
-
-            var insts_printed = [];
+            var validCvgInstanceList = [];
 
             for (var it2 = 0; it2 < type.cg_insts.length; ++it2) {
-                var inst = type.cg_insts[it2];
-
-                var cvps = [];
-                var procs = [];
-                var cvp_weights = [];
-                var count = 0;
-                for (var it3 = 0; it3 < inst.cvg_cvps.length; ++it3) {
-                    var cvp = inst.cvg_cvps[it3];
-
-                    if (
-                        (button_change.state[0] == true &&
-                            cvp.cvp_procent == 100) ||
-                        (button_change.state[2] == true &&
-                            cvp.cvp_procent == 0.0) ||
-                        (button_change.state[1] == true &&
-                            cvp.cvp_procent < 100 &&
-                            cvp.cvp_procent > 0)
-                    ) {
-                        cvps.push(cvp);
-                        procs.push(cvp.cvp_procent);
-                        cvp_weights.push(cvp.cvp_weight);
-                        count += cvp.cg_inst_lines;
-                    }
-                }
-
-                if (cvps.length != 0) {
-                    insts_printed.push(
-                        new Cg(procs, cvp_weights, cvps, count, {
-                            name: inst.name,
-                            style: inst.style
-                        })
-                    );
+                var cgInstance = type.cg_insts[it2];
+                
+                if ((show_full && cgInstance.cvg_proc == 100) ||
+                    (show_empty && cgInstance.cvg_proc == 0.0) ||
+                    (show_partial && cgInstance.cvg_proc < 100 && cgInstance.cvg_proc > 0)) {
+                   validCvgInstanceList.push(cgInstance);
                 }
             }
-
-            if (insts_printed.length != 0) {
-                var print_type = new CgType(String(type.name), insts_printed);
-                element1.innerHTML += print_type.stringify();
-                toc.innerHTML += print_type.toc_stringify();
-            }
+            if (validCvgInstanceList.length > 0)
+                filteredCgTypes.push(new CgType(String(type.name), validCvgInstanceList));
         }
-
-        toc.innerHTML += '<li><a href="#top">Back to top </a></li>';
-        toc.innerHTML += "</ul>";
-        toc.innerHTML += "<br>";
+        return filteredCgTypes;
     }
 
+    function button_change(index) {
+        if (global_cvg_type.length == 0) {
+            alert("No data loaded!");
+            for (var i = 0; i < global_buttons.length; ++i) {
+                global_buttons[i].checked = false;
+            }
+            return;
+        }
+        updateWindowText(filter_global_cvg_types(
+            global_buttons[0].checked,
+            global_buttons[1].checked,
+            global_buttons[2].checked
+        ));
+    }
+
+/*
     function print_options(node) {
         var name = node.attributes;
         var result = "<table>";
@@ -414,4 +312,58 @@
         }
         return result + "</table>";
     }
+*/
+</script>
+
+<script type="text/javascript">
+    var cross_bins = [];
+
+    var pass_bin = 0;
+    var fail_bin = 0;
+    var cvp_procent = 0;
+    var cvp_bin_count = 0;
+
+    var cvp_procs = [];
+    var cvp_weights = [];
+    var cg_inst_lines = 0;
+
+    var global_cvg_tree = [];
+    var global_cvp_tree = [];
+    var global_bin_tree = [];
+    var global_cvg_type = [];
+
+    var SizeEnum = {
+        DEEPER: 1,
+        RETURN: 2
+    };
+
+    var Covered = {
+        EXCLUDED: 1,
+        NOTHING: 2,
+        PARTIAL: 3,
+        COMPLETE: 4
+    };
+
+    var global_buttons = [
+        document.getElementById("show_full"),
+        document.getElementById("show_empty"),
+        document.getElementById("show_partial")
+    ]; 
+
+    function readSingleFile(arg) {
+        var file = arg.target.files[0];
+        if (!file) {
+            return;
+        }
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var contents = e.target.result;
+            displayLoadedFileContents(contents);
+        };
+        reader.readAsText(file);
+    }
+
+    document
+        .getElementById("file-input")
+        .addEventListener("change", readSingleFile, false);
 </script>

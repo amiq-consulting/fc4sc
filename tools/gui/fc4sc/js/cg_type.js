@@ -40,20 +40,14 @@ CgType.prototype.stringify = function() {
         this.name +
         "</h1>";
 
-    // elem.innerHTML += result;
-
     for (var k = 0; k < this.cg_insts.length; ++k) {
         result += this.cg_insts[k].stringify();
     }
-
-    // elem.innerHTML += "</div>";
     result += "</div>";
-
-    console.log(result);
 
     return result;
 };
 
 CgType.prototype.toc_stringify = function() {
-    return "<li>" + '<a href="#' + this.name + '">' + this.name + "</a></li>";
+    return '<a href="#' + this.name + '">' + this.name + "</a>";
 };
