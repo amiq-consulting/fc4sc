@@ -43,9 +43,9 @@ function CrossBin(node) {
 CrossBin.prototype.stringify = function() {
   var result = "";
 
-      result  += "<tr  class=\"bin_" + ((this.count == 0) ? "fail" : "pass") +"\">" 
+      result  += "<tr  class=\"bin_" + ((this.count == 0) ? "fail" : "pass") +"\">"
       +    "<td colspan=\"2\">" + "{" + this.indexes + "}" + "</td>"
-      +    "<td>" + this.count + "</td>" 
+      +    "<td>" + this.count + "</td>"
       +    "<td>" + (this.count == 0 ? "&#10008;" : "&#10004;" ) + "</td>"
       +  "</tr>";
 

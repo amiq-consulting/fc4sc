@@ -24,16 +24,16 @@
 
 .cvp {
   font-size: 120%;
-  font-weight: bold; 
+  font-weight: bold;
 }
 
 .cg_inst {
   font-size: 170%;
-  font-weight: bold; 
+  font-weight: bold;
 }
 
 .to_the_left {
-  margin-left: auto; 
+  margin-left: auto;
   margin-right: auto;
 }
 
@@ -51,7 +51,7 @@
 }
 
 .bin_illegal {
-  color : gray;
+  color : #77d47a;
   font-weight: bold;
   left: 30%;
 }
@@ -79,11 +79,11 @@ td,tr,th {
   -ms-transform: translateX(-50%);
   -webkit-transform: translate(-50%,0%);
   transform: translate(-50%,0%);
-}   
+}
 
 @media print {
     .my_div {
-        width: auto; 
+        width: auto;
         max-width: 670px;
     }
 }
@@ -98,7 +98,7 @@ td,tr,th {
 }
 
 .toc_types {
-  overflow-y: hidden; 
+  overflow-y: hidden;
   height:400px;
 }
 

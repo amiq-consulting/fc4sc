@@ -31,7 +31,7 @@ function get_proc_style (excluded, pass, fail) {
     return "class=\"proc proc_full\"";
 
   if (pass == 0)
-    return "class=\"proc proc_empty\"";      
+    return "class=\"proc proc_empty\"";
 
   return "class=\"proc proc_partial\"";
 
@@ -91,28 +91,28 @@ function Cross(node, cross_bins) {
 
 Cross.prototype.stringify = function() {
   var result = "";
-  
-  result += "<tr>" 
-  +    "<td " + this.style + " rowspan=" + (this.cvp_bin_count + 2) + ">" 
+
+  result += "<tr>"
+  +    "<td " + this.style + " rowspan=" + (this.cvp_bin_count + 2) + ">"
   +      this.cvp_procent + "%"
   +    "</td>"
-  +  "</tr>"; 
+  +  "</tr>";
 
 
-  result += 
+  result +=
        "<tr class=\"cvp\">"
   +       "<td colspan=\"5\">" + this.name + "</td>"
-  +    "</tr>" 
+  +    "</tr>"
   +    "<tr>"
   +      "<td class=\"cvp\" colspan=\"2\">"
   +       this.exprString
   +      "</td>"
-  +      "<td class=\"cvp\" colspan=\"3\">" 
-  +       String(this.hit_bins) + "/" + String(this.total_bins) + " bins hit" 
+  +      "<td class=\"cvp\" colspan=\"3\">"
+  +       String(this.hit_bins) + "/" + String(this.total_bins) + " bins hit"
   +      "</td>"
-  +    "</tr>"; 
+  +    "</tr>";
 
-  
+
   for (var i=0; i < this.cvp_bins.length; ++i)
     result += this.cvp_bins[i].stringify();
 

@@ -48,10 +48,17 @@ function Bin(node) {
         ranges.push("[" + val1.toString() + ":" + val2.toString() + "]");
       }
 
-      if (total_hits > 0) 
-        pass_bin++;
-      else 
-        fail_bin++;
+      if (this.type.localeCompare("illegal") == 0) {
+        if (total_hits > 0)
+          fail_bin++;
+        else
+          pass_bin++;
+      } else {
+        if (total_hits > 0)
+          pass_bin++;
+        else
+          fail_bin++;
+      }
 
     }
   }
@@ -103,7 +110,7 @@ Bin.prototype.stringify = function() {
  var result = "";
  var rowspan = this.ranges.length.toString();
 
- result  += "<tr  class=\""+ this.style_class +"\">" 
+ result  += "<tr  class=\""+ this.style_class +"\">"
  +    "<td class=\"bin_header\" rowspan=" + rowspan + ">" + this.name + "</td>"
  +    "<td>" + this.ranges[0] + "</td>"
  +    "<td rowspan=" + rowspan + ">" + this.total_hits + "</td>"
@@ -112,7 +119,7 @@ Bin.prototype.stringify = function() {
 
 
  for (var i = 1; i < this.ranges.length; i++) {
-  result  += "<tr class=\"" + this.style_class +"\">"  
+  result  += "<tr class=\"" + this.style_class +"\">"
   +    "<td>" + this.ranges[i] + "</td>"
   +  "</tr>";
 }

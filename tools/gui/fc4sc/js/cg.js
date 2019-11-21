@@ -37,15 +37,15 @@ function Cg(cvp_procs, cvp_weights, global_cvp_tree, cg_inst_lines, choice) {
 
   if ('node' in choice) {
     var node = choice['node'];
-    this.name = node.getAttribute('name');  
+    this.name = node.getAttribute('name');
 
     this.style = "proc_partial";
     if (node.getAttribute("excluded") == "true")
       this.style = "proc_excluded";
-    else if (this.cvg_proc == 0.00) 
+    else if (this.cvg_proc == 0.00)
       this.style = "proc_empty";
     else if (this.cvg_proc == 100.00)
-      this.style = "proc_full";  
+      this.style = "proc_full";
 
   } else {
 
@@ -53,7 +53,7 @@ function Cg(cvp_procs, cvp_weights, global_cvp_tree, cg_inst_lines, choice) {
     this.style = choice['style'];
 
   }
-  
+
   this.cg_inst_lines = cg_inst_lines + 1;
 
   this.cvg_cvps = new Array(global_cvp_tree.length);
@@ -69,15 +69,15 @@ function Cg(cvp_procs, cvp_weights, global_cvp_tree, cg_inst_lines, choice) {
 
 Cg.prototype.stringify = function() {
 
-  result = "<table id=\"cg_table\" border=\"1\"> " 
-  +    "<tr>" 
-  +      "<th class=\"proc " + this.style + "\" rowspan=\"" + this.cg_inst_lines +"\">" 
-  +        String(this.cvg_proc) + "%" 
+  result = "<table id=\"cg_table\" border=\"1\"> "
+  +    "<tr>"
+  +      "<th class=\"proc " + this.style + "\" rowspan=\"" + this.cg_inst_lines +"\">"
+  +        String(this.cvg_proc) + "%"
   +      "</th>"
-  +      "<th class=\"cg_inst\" colspan=\"5\">" 
-  +        this.name 
+  +      "<th class=\"cg_inst\" colspan=\"5\">"
+  +        this.name
   +      "</th>"
-  +    "</tr>"; 
+  +    "</tr>";
 
 
   for (var i=0; i < this.cvg_cvps.length; ++i)

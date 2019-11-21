@@ -219,12 +219,12 @@
                 break;
         }
     }
-    
+
     function updateWindowText(covergroupTypes) {
 	    var toc_header = document.getElementById("toc_header");
         var toc = document.getElementById("toc");
         var main_content = document.getElementById("file-content");
-        
+
         toc_header.innerHTML = '<br><h4>Covergroup types</h4>\t\t <a href="#top">Back to top </a> ';
         toc.innerHTML = "";
         main_content.innerHTML = "";
@@ -241,7 +241,7 @@
         };
 
         var xmlFile = parseXml(contents);
-        
+
         for (var i = 0; i < global_buttons.length; ++i) {
             global_buttons[i].checked = true;
         }
@@ -256,13 +256,13 @@
         }
         updateWindowText(global_cvg_type);
     }
-    
+
     function filter_global_cvg_types(show_full, show_partial, show_empty) {
 	    if (!show_full && !show_empty && !show_partial)
             return [];
         if (show_full && show_empty && show_partial)
             return global_cvg_type;
-    
+
         var filteredCgTypes = []
         for (var it1 = 0; it1 < global_cvg_type.length; ++it1) {
             var type = global_cvg_type[it1];
@@ -270,7 +270,7 @@
 
             for (var it2 = 0; it2 < type.cg_insts.length; ++it2) {
                 var cgInstance = type.cg_insts[it2];
-                
+
                 if ((show_full && cgInstance.cvg_proc == 100) ||
                     (show_empty && cgInstance.cvg_proc == 0.0) ||
                     (show_partial && cgInstance.cvg_proc < 100 && cgInstance.cvg_proc > 0)) {
@@ -348,7 +348,7 @@
         document.getElementById("show_full"),
         document.getElementById("show_empty"),
         document.getElementById("show_partial")
-    ]; 
+    ];
 
     function readSingleFile(arg) {
         var file = arg.target.files[0];
