@@ -196,6 +196,7 @@ if __name__ == "__main__":
     parser.add_argument('--report_missing_bins',  action='store_true', help="Including missing bin details in report")
     parser.add_argument('--yaml_out',             type=str, help="Output YAML file")
     parser.add_argument('--yaml_cg_summary',      action='store_true', help="Covergroup summary to YAML")
+    parser.add_argument('--quiet',                action='store_true', help="Do write anything to standard output")
 
     args = parser.parse_args()
 
@@ -220,7 +221,8 @@ if __name__ == "__main__":
         with open(args.yaml_out, 'w') as yaml_file:
             yaml.dump(yaml_db, yaml_file, default_flow_style=False)
 
-    print("""
+    if not args.quiet:
+        print("""
   Overall Summary:
   
     Total Coverage: %6.2f
@@ -228,12 +230,14 @@ if __name__ == "__main__":
   Module Summary:
 """ % (yaml_db['pct_cov']))
 
-    report_coverage()
+        report_coverage()
 
     if (args.report_missing_bins):
         print("""
   Missing Bins
 """)
         report_coverage(report_missing=True)
-print("")
+
+    if not args.quiet:
+        print("")
 
