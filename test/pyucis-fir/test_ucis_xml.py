@@ -1,8 +1,3 @@
-"""TODO(davjohn): DO NOT SUBMIT without one-line documentation for test_ucis_xml.
-
-TODO(davjohn): DO NOT SUBMIT without a detailed description of test_ucis_xml.
-"""
-
 
 from io import BytesIO
 import os
