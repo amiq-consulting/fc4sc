@@ -246,7 +246,7 @@ public:
            << "\" line=\""
            << "1"
            << "\" inlineCount=\"1\"/>\n";
-    stream << "<ucis:cgSourceId file=\"" << file_name << "\" "
+    stream << "<ucis:cgSourceId file=\"1\" "
            << "line=\"" << line << "\""
            << " inlineCount=\"1\"/>\n";
     stream << "</ucis:cgId>\n";
