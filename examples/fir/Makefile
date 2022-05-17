@@ -50,5 +50,8 @@ obj/%.o: %.cpp
 run:
 	$(LDPATH) && ./$(EXEC)
 
+test:
+	$(MAKE) -C ../../test/pyucis-fir/ validate_fir
+
 clean:
 	rm -rf obj $(EXEC)
