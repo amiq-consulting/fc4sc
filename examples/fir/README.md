@@ -9,7 +9,7 @@ $ make
 $ make run
 ```
 
-# Test Instructions **(optional)**
+# Test Instructions *(optional)*
 Optionally test the output using the following instructions
 
 
