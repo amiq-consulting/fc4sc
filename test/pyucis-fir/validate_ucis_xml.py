@@ -25,19 +25,20 @@ def validate_ucis(file_name):
     except:
         print("an exception occured")
 
-    return rc # TODO: fixme
+    return rc 
 
 
-#def main(argv: Sequence[str]) -> None:
 def main() -> None:
-    #if len(argv) > 1:
-    #    raise app.UsageError('Too many command-line arguments.')
 
-    validate_ucis('../../examples/fir/coverage_results.xml')
+    rc = validate_ucis('../../examples/fir/coverage_results.xml')
+    return rc
 
 
 
 if __name__ == '__main__':
-#  app.run(main)
-  main()
+  rc = main()
+  if rc:
+    print("validation OK")
+  else:
+    print("validation Failure")
 
