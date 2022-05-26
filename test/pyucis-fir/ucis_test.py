@@ -3,11 +3,8 @@
 import unittest
 from validate_ucis_xml import validate_ucis
 
-#from usr.local.google.home.davjohn.progs.fc4sc.test.pyucis-fir import ucis
-#from google3.testing.pybase import googletest
 
 
-#class UcisTest(googletest.TestCase):
 class UcisTest(unittest.TestCase):
 
   def test_validate_ucis_xml(self):
@@ -16,5 +13,4 @@ class UcisTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-  #googletest.main()
   unittest.main()
