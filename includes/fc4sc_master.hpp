@@ -170,15 +170,19 @@ class global
              << "\"";
       stream << ">\n";
 
-      // Needed information but not filled
-      stream << "<ucis:sourceFiles ";
-      stream << " fileName=\""
-             << "string"
-             << "\"";
-      stream << " id=\""
-             << "201"
-             << "\" ";
-      stream << "/>\n";
+      std::unordered_map<std::string, size_t> filename2id;
+      for (auto &type_it : cv_data)
+          if(filename2id.find(type_it.second.file_name) == std::end(filename2id)) {
+              filename2id[type_it.second.file_name] = filename2id.size()+1;
+              stream << "<ucis:sourceFiles ";
+              stream << " fileName=\""
+                      << type_it.second.file_name
+                      << "\"";
+              stream << " id=\""
+                      << filename2id.size()
+                      << "\" ";
+              stream << "/>\n";
+         }
 
       // Needed information but not filled
       stream << "<ucis:historyNodes ";
@@ -273,7 +277,7 @@ class global
         stream << ">\n";
 
         stream << "<ucis:id ";
-        stream << "file=\"" << type_it.second.file_name << "\" ";
+        stream << "file=\"" << filename2id[type_it.second.file_name] << "\" ";
         stream << "line=\"" << type_it.second.line << "\" ";
         stream << "inlineCount=\""
                << "1"
@@ -544,6 +548,13 @@ public:
       }
     }
     return out;
+  }
+
+  static unsigned get_xml_filename_id(const std::string& n){
+      static std::unordered_map<std::string, size_t> filename2id;
+      if(filename2id.find(n) == std::end(filename2id))
+          filename2id[n] = filename2id.size()+1;
+      return filename2id[n];
   }
 };
 

@@ -260,12 +260,16 @@ public:
 
     stream << "<ucis:cross ";
     stream << "name=\"" << fc4sc::global::escape_xml_chars(this->name) << "\" ";
-    stream << "key=\""
-           << "KEY"
-           << "\" ";
+    stream << "key=\"" << fc4sc::global::escape_xml_chars(this->name) << "\" ";
     stream << ">\n";
 
-    stream << option << "\n";
+    stream << "<ucis:options ";
+    stream << "weight=\"" << option.weight << "\" ";
+    stream << "goal=\"" << option.goal << "\" ";
+    stream << "comment=\"" << option.comment << "\" ";
+    stream << "at_least=\"" << option.at_least << "\" ";
+    stream << "cross_num_print_missing =\"" << 0 << "\" ";
+    stream << "/>\n";
 
     for (auto &cvp : cvps_vec)
     {
