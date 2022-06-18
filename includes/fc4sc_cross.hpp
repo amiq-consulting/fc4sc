@@ -276,13 +276,22 @@ public:
       stream << "<ucis:crossExpr>" << cvp->name << "</ucis:crossExpr> \n";
     }
 
+    std::ostringstream ss;
     for (auto& bin : bins)
     {
+      ss.str("");
+      auto it = bin.first.begin();
+      for (auto& cvp : cvps_vec) {
+        if(ss.str().size()) ss<<"/";
+          ss<<cvp->name<<"["<< *it<<"]";
+          it++;
+      }
+
       stream << "<ucis:crossBin \n";
       stream << "name=\""
-             << ""
+             << ss.str()
              << "\"  \n";
-      stream << "key=\"" << 0 << "\" \n";
+      stream << "key=\"" << ss.str() << "\" \n";
       stream << "type=\""
              << "default"
              << "\" \n";
