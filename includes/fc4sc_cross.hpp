@@ -260,7 +260,7 @@ public:
 
     stream << "<ucis:cross ";
     stream << "name=\"" << fc4sc::global::escape_xml_chars(this->name) << "\" ";
-    stream << "key=\"" << fc4sc::global::escape_xml_chars(this->name) << "\" ";
+    stream << "key=\"cr_" << fc4sc::global::get_next_key() << "\" ";
     stream << ">\n";
 
     stream << "<ucis:options ";
@@ -291,7 +291,7 @@ public:
       stream << "name=\""
              << ss.str()
              << "\"  \n";
-      stream << "key=\"" << ss.str() << "\" \n";
+      stream << "key=\"crb_" << fc4sc::global::get_next_key() << "\" \n";
       stream << "type=\""
              << "default"
              << "\" \n";

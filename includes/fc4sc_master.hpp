@@ -257,8 +257,6 @@ class global
       stream << ">\n";
       stream << "</ucis:historyNodes>\n";
 
-      static int key = 0;
-
       // Each type is between an instanceCoverages tag
       for (auto &type_it : cv_data)
       {
@@ -267,8 +265,8 @@ class global
         stream << "name=\""
                << "string"
                << "\" \n";
-        stream << "key=\"" << ++key << "\" \n";
-        stream << "instanceId=\"" << ++key << "\" \n";
+        stream << "key=\"ic_" << fc4sc::global::get_next_key() << "\" \n";
+        stream << "instanceId=\"" << get_next_key() << "\" \n";
         stream << "alias=\""
                << "string"
                << "\" \n";
@@ -295,7 +293,7 @@ class global
           stream << "<ucis:cgInstance ";
           stream << "name=\"" << type_it.second.cvg_insts_name[i] << "\" \n";
 
-          stream << "key=\"" << ++key << "\" \n";
+          stream << "key=\"cgi_" << fc4sc::global::get_next_key() << "\" \n";
           stream << "alias=\""
                  << "string"
                  << "\" \n";
@@ -317,7 +315,7 @@ class global
 
       stream << "</ucis:UCIS>\n";
 
-      key = 0;
+      get_next_key(true);
       return stream;
     };
 
@@ -555,6 +553,15 @@ public:
       if(filename2id.find(n) == std::end(filename2id))
           filename2id[n] = filename2id.size()+1;
       return filename2id[n];
+  }
+
+  static uint64_t get_next_key(bool reset=false){
+      uint64_t key{0};
+      if(reset){
+          key=0;
+          return 0;
+      } else
+          return ++key;
   }
 };
 

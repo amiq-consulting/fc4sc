@@ -192,7 +192,7 @@ public:
   virtual void to_xml(std::ostream &stream) const
   {
     stream << "<ucis:coverpointBin name=\"" << fc4sc::global::escape_xml_chars(name) << "\" \n";
-    stream << "key=\"" << fc4sc::global::escape_xml_chars(name) << "\"\n";
+    stream << "key=\"cpb_" << fc4sc::global::get_next_key() << "\"\n";
     stream << "type=\""
            << this->ucis_bin_type
            << "\" "

@@ -66,6 +66,9 @@ struct cvg_option
   /*! !UNIPLEMENTED! Collect coverage per instance */
   bool per_instance;
 
+  /*! !UNIPLEMENTED! Collect coverage per instance */
+  bool merge_instances;
+
   /*! !UNIPLEMENTED! Enables covergroup::get_inst_coverage() */
   bool get_inst_coverage;
 
@@ -82,6 +85,7 @@ struct cvg_option
 
     this->cross_num_print_missing = 0;
     this->per_instance = 0;
+    this->merge_instances = 0;
     this->get_inst_coverage = 0;
   }
 
@@ -99,6 +103,7 @@ struct cvg_option
     stream << "detect_overlap=\"" << inst.detect_overlap << "\" ";
     stream << "cross_num_print_missing=\"" << inst.cross_num_print_missing << "\" ";
     stream << "per_instance=\"" << inst.per_instance << "\" ";
+    stream << "merge_instances=\"" << inst.merge_instances << "\" ";
     stream << "/>";
     return stream;
   }

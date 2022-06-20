@@ -386,9 +386,7 @@ public:
   {
     stream << "<ucis:coverpoint ";
     stream << "name=\"" << fc4sc::global::escape_xml_chars(this->name) << "\" ";
-    stream << "key=\""
-           << "KEY"
-           << "\" ";
+    stream << "key=\"cp_" << fc4sc::global::get_next_key() << "\" ";
     stream << "exprString=\"" << fc4sc::global::escape_xml_chars(this->sample_expression_str) << "\"";
     stream << ">\n";
 
