@@ -556,7 +556,7 @@ public:
   }
 
   static uint64_t get_next_key(bool reset=false){
-      uint64_t key{0};
+      static uint64_t key{0};
       if(reset){
           key=0;
           return 0;

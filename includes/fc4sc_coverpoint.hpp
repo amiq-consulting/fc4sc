@@ -269,7 +269,7 @@ public:
   /*!
    *  Retrieves the number of regular bins
    */
-  uint64_t size() {
+  size_t size() override {
     return bins.size();
   }
 

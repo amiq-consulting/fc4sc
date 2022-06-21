@@ -80,6 +80,11 @@ class cross : public cvp_base
     return 1;
   }
 
+  size_t size() override
+  {
+    return std::accumulate(std::begin(cvps_vec), std::end(cvps_vec), 1);
+  }
+
   /*!
    *  \brief Helper function to check if a sampled value is in a cross
    *  \tparam k Index of the currently checked element
@@ -121,6 +126,19 @@ class cross : public cvp_base
     return true;
   }
 
+  void init_bins(std::vector<size_t>& indices, size_t cvp_index=0){
+      if(cvp_index==cvps_vec.size())
+          bins[indices]=0;
+      else {
+          auto& cvp = cvps_vec[cvp_index];
+          for(size_t i=0; i<cvp->size(); ++i){
+              indices.push_back(i);
+              init_bins(indices, cvp_index+1);
+              indices.pop_back();
+          }
+      }
+  };
+
 public:
   /*! Hit cross bins storage */
   std::map<std::vector<size_t>, uint64_t> bins;
@@ -142,8 +160,12 @@ public:
     cvps_vec = std::vector<cvp_base*>{args...};
 
     std::reverse(cvps_vec.begin(), cvps_vec.end());
-  };
+    std::vector<size_t> prod;
+    prod.reserve(cvps_vec.size());
+    for(auto& cvp: cvps_vec)
+        init_bins(prod);
 
+  };
   
   template <typename... Restrictions, typename Select>
   cross(binsof<Select> binsof_inst,  Restrictions... binsofs) : cross (binsofs...) {

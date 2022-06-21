@@ -242,6 +242,8 @@ public:
   /*! Number of sample misses (no bin hit)*/
   uint64_t misses = 0;
 
+  virtual size_t size() = 0;
+
   /*! Destructor */
   virtual ~cvp_base(){}
 };
