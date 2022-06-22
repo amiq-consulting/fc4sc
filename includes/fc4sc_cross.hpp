@@ -80,9 +80,11 @@ class cross : public cvp_base
     return 1;
   }
 
-  size_t size() override
+  size_t size() const override
   {
-    return std::accumulate(std::begin(cvps_vec), std::end(cvps_vec), 1);
+    size_t prod = 1;
+    for(auto& cvp: cvps_vec) prod *= cvp->size();
+    return prod;
   }
 
   /*!
@@ -162,8 +164,7 @@ public:
     std::reverse(cvps_vec.begin(), cvps_vec.end());
     std::vector<size_t> prod;
     prod.reserve(cvps_vec.size());
-    for(auto& cvp: cvps_vec)
-        init_bins(prod);
+    init_bins(prod);
 
   };
   

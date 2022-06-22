@@ -269,7 +269,7 @@ public:
   /*!
    *  Retrieves the number of regular bins
    */
-  size_t size() override {
+  size_t size() const override {
     return bins.size();
   }
 
