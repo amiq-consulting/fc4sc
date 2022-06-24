@@ -273,7 +273,7 @@ class global
         stream << ">\n";
 
         stream << "<ucis:id ";
-        stream << "file=\"" << type_it.second.file_name << "\" ";
+        stream << "file=\"" << 1 << "\" ";
         stream << "line=\"" << type_it.second.line << "\" ";
         stream << "inlineCount=\""
                << "1"

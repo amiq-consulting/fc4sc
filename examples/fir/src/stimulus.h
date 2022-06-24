@@ -103,7 +103,7 @@ SC_MODULE(stimulus) {
         bin<int>("invalid", 0)
     };
 
-    cross<int, int, int> reset_valid_cross = cross<int, int, int> (this, "reset valid",
+    cross<int, int, int> reset_valid_cross = cross<int, int, int> (this, "reset_valid",
         &reset_cvp,
         &input_valid_cvp,
         &values_cvp

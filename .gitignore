@@ -4,3 +4,6 @@
 .settings/
 Debug/
 .pydevproject
+venv/
+setenv.sh
+fir.xml
