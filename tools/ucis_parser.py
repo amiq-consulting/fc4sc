@@ -22,27 +22,27 @@ UCIS top level element
       |        | from : start value of the interval
       |        | to   : end value of the interval
       |        |
-      |        -> contents 
+      |        -> contents
       |           | coverageCount : the number of hits registered in this interval
       |           0
-      | 
+      |
       -> cross [0:n]
          | name : name of the cross
          |
          -> crossBin [0:n]
             | name : name of the cross bin
-            | 
+            |
             -> index
-            -> index 
+            -> index
             .
             .     Number of indexes = number of crossed coverpoints
             .
-            -> index  
-            | 
-            -> contents                                                        
+            -> index
+            |
+            -> contents
                | coverageCount : the number of hits registered in this cross bin
-               0                                                               
-            
+               0
+
 Note that this only contains the elements which are relevant for merging!
 """
 class UCIS_DB_Parser:
@@ -70,13 +70,45 @@ class UCIS_DB_Parser:
         # the master ucis DB which will be "merged" into when parsing additional DBs
         self.mergeDBtree = None
         self.mergeDBroot = None
-    
+
     def find_ucis_element(self, element, subElementName):
-        return element.find('{0}:{1}'.format(self.ucis_ns, subElementName), self.ns_map)
-    
+        e =  element.find('{0}:{1}'.format(self.ucis_ns, subElementName), self.ns_map)
+        if "coverpointBin" in e.tag:
+          if e.attrib['type'] == 'default' or e.attrib['type'] == 'illegal':
+            # its valid
+            return e
+          else:
+            # its not.  Its 'ignore'. Ignore it.
+            return None
+        else:
+          # its something other than a coverpointBin
+          return e
+
+
     def findall_ucis_children(self, element, subElementName):
-        return element.findall('{0}:{1}'.format(self.ucis_ns, subElementName), self.ns_map)
-    
+        # instead of returning all, use the iterator form, check for the ones
+        # which are of tag type "coverpointBin", then examine the attribute
+        # to see if its default.  If it is, include in results, otherwise
+        # ignore.
+        an_iter = element.iterfind('{0}:{1}'.format(self.ucis_ns, subElementName), self.ns_map)
+        a_filtered_list = []
+        for e in an_iter:
+          if "coverpointBin" in e.tag:
+            # this element is a coverpointBin, which can be of type: Default,
+            # Ignore, or Illegal.  Only return elements which are of type
+            # Default or illegal?.
+            if e.attrib['type'] == 'default' or e.attrib['type'] == 'illegal':
+              # its valid
+              a_filtered_list.append(e)
+            else:
+              # its not.  Its 'ignore'. Ignore it.
+              print('\t{} is not of type="default", ignoring.'.format(e.attrib['name']))
+          else:
+            # its something other than a coverpointBin
+            a_filtered_list.append(e)
+
+        return a_filtered_list
+
     # formats an XPath ElementTree query to search for a specified element name
     # and an optional attribute name together with a certain attribute value
     def format_et_query(self, elementName, attribName = None, attribValue = None):
@@ -84,8 +116,8 @@ class UCIS_DB_Parser:
         if attribName is not None and attribValue is not None:
             query += "[@{0}='{1}']".format(attribName, attribValue)
         return query
-    
+
     # searches and returns the first match of the XPath query in the mergeDBtree
     def find_merge_element_by_query(self, xpath_query):
         return self.mergeDBtree.find(xpath_query, self.ns_map)
-    
+
