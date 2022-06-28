@@ -195,7 +195,8 @@ public:
     stream << "type=\""
            << this->ucis_bin_type
            << "\" "
-           << "alias=\"" << this->get_hitcount() << "\""
+           << "alias=\"" << this->get_hitcount() << "\" "
+           << "key=\"KEY\""
            << ">\n";
 
     // Print each range. Coverpoint writes the header (name etc.)

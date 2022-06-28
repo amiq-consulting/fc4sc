@@ -265,7 +265,7 @@ public:
            << "\" ";
     stream << ">\n";
 
-    stream << option << "\n";
+    stream << "<ucis:options />\n";
 
     for (auto &cvp : cvps_vec)
     {

@@ -47,8 +47,12 @@ main: $(OBJFILES)
 obj/%.o: %.cpp
 	$(CC) $(CFLAGS) $(DEFINES) $(INCLUDES) $^ -o $@
 
-run:
+run: main
 	$(LDPATH) && ./$(EXEC)
+
+test: run
+	$(MAKE) -C ../../test/pyucis-fir/ validate_fir
 
 clean:
 	rm -rf obj $(EXEC)
+	rm coverage_results.xml

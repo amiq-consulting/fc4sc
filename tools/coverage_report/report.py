@@ -4,7 +4,7 @@ import yaml
 import argparse
 import xml.etree.ElementTree as ET
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
 
 from ucis_parser import UCIS_DB_Parser
 
@@ -53,7 +53,9 @@ class UCIS_DB_Reporter(UCIS_DB_Parser):
 
     def get_coverpoint_report_data(self, cgInstance, cg_cp_bin_map, cg_data):
         for coverpoint in self.findall_ucis_children(cgInstance, "coverpoint"):
+            print("coverpoint is ", coverpoint)
             options = self.find_ucis_element(coverpoint, 'options')
+            print("JFD options is ", options)
             cp_name = coverpoint.get('name')
             cp_data = {
                 'item_type' : 'point',
@@ -78,7 +80,11 @@ class UCIS_DB_Reporter(UCIS_DB_Parser):
                 else:
                     cp_data['bin_misses'] += 1
                     cp_data['misses'].append(bin_name)
-            cp_data['pct_cov'] = 100 * ((cp_data['bin_count'] - cp_data['bin_misses']) / float(cp_data['bin_count']))
+            if cp_data['bin_count'] == 0:
+              print('should not happen. get_coverpoint_report_data() cp_data["bin_count"] is zero')
+              print('skip')
+            else:
+              cp_data['pct_cov'] = 100 * ((cp_data['bin_count'] - cp_data['bin_misses']) / float(cp_data['bin_count']))
 
     def collect_cross_bins(self, exprs, cg_cp_bin_map, parrent_bins):
         expr_name = exprs[0].text
@@ -95,7 +101,6 @@ class UCIS_DB_Reporter(UCIS_DB_Parser):
         names = []
         for expr_idx, bin_idx in enumerate(bin_tuple):
             expr_name = exprs[expr_idx].text
-           #expr_bin_name = "%s(%s)" % (expr_name, cg_cp_bin_map[expr_name][bin_idx])
             expr_bin_name = cg_cp_bin_map[expr_name][bin_idx]
             names.append(expr_bin_name)
         names.reverse()
@@ -126,7 +131,6 @@ class UCIS_DB_Reporter(UCIS_DB_Parser):
             for cbin in all_cross_bins:
                bin_hits[cbin] = 0
 
-            #
             for bin_idx, bin in enumerate(self.findall_ucis_children(cross, "crossBin")):
                 bin_name = bin.get('name')
                 cg_cp_bin_map[cr_name][bin_idx] = bin_name
@@ -144,7 +148,10 @@ class UCIS_DB_Reporter(UCIS_DB_Parser):
                 else:
                     cr_data['bin_misses'] += 1
                     cr_data['misses'].append(self.get_cross_bin_name_from_tuple(cg_cp_bin_map, exprs, bin_tuple))
-            cr_data['pct_cov'] = 100 * ((cr_data['bin_count'] - cr_data['bin_misses']) / float(cr_data['bin_count']))
+            if cr_data['bin_count'] == 0:
+              print('JFD in get_cross_report_data() cr_data["bin_count"] is zero')
+            else:
+              cr_data['pct_cov'] = 100 * ((cr_data['bin_count'] - cr_data['bin_misses']) / float(cr_data['bin_count']))
 
 args = {}
 
@@ -201,12 +208,12 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     parser = UCIS_DB_Reporter()
-    
+
     if not args.xml_report:
         raise ValueError("No input XML provided!")
     if not args.yaml_out:
         raise ValueError("No output YAML name provided!")
-    
+
     try:
         d = parser.get_report_data(args.xml_report)
     except IOError as e:
@@ -224,9 +231,9 @@ if __name__ == "__main__":
     if not args.quiet:
         print("""
   Overall Summary:
-  
+
     Total Coverage: %6.2f
-    
+
   Module Summary:
 """ % (yaml_db['pct_cov']))
 
