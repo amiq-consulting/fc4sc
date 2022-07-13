@@ -100,10 +100,10 @@ struct cvg_option
     stream << "comment=\"" << inst.comment << "\" ";
     stream << "at_least=\"" << inst.at_least << "\" ";
     stream << "auto_bin_max=\"" << inst.auto_bin_max << "\" ";
-    stream << "detect_overlap=\"" << inst.detect_overlap << "\" ";
+    stream << "detect_overlap=\"" << (inst.detect_overlap?"true":"false") << "\" ";
     stream << "cross_num_print_missing=\"" << inst.cross_num_print_missing << "\" ";
-    stream << "per_instance=\"" << inst.per_instance << "\" ";
-    stream << "merge_instances=\"" << inst.merge_instances << "\" ";
+    stream << "per_instance=\"" << (inst.per_instance?"true":"false") << "\" ";
+    stream << "merge_instances=\"" << (inst.merge_instances?"true":"false") << "\" ";
     stream << "/>";
     return stream;
   }
