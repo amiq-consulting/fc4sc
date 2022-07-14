@@ -170,15 +170,19 @@ class global
              << "\"";
       stream << ">\n";
 
-      // Needed information but not filled
-      stream << "<ucis:sourceFiles ";
-      stream << " fileName=\""
-             << "string"
-             << "\"";
-      stream << " id=\""
-             << "201"
-             << "\" ";
-      stream << "/>\n";
+      std::unordered_map<std::string, size_t> filename2id;
+      for (auto &type_it : cv_data)
+          if(filename2id.find(type_it.second.file_name) == std::end(filename2id)) {
+              filename2id[type_it.second.file_name] = filename2id.size()+1;
+              stream << "<ucis:sourceFiles ";
+              stream << " fileName=\""
+                      << type_it.second.file_name
+                      << "\"";
+              stream << " id=\""
+                      << filename2id.size()
+                      << "\" ";
+              stream << "/>\n";
+         }
 
       // Needed information but not filled
       stream << "<ucis:historyNodes ";
@@ -253,8 +257,6 @@ class global
       stream << ">\n";
       stream << "</ucis:historyNodes>\n";
 
-      static int key = 0;
-
       // Each type is between an instanceCoverages tag
       for (auto &type_it : cv_data)
       {
@@ -263,8 +265,8 @@ class global
         stream << "name=\""
                << "string"
                << "\" \n";
-        stream << "key=\"" << ++key << "\" \n";
-        stream << "instanceId=\"" << ++key << "\" \n";
+        stream << "key=\"ic_" << fc4sc::global::get_next_key() << "\" \n";
+        stream << "instanceId=\"" << get_next_key() << "\" \n";
         stream << "alias=\""
                << "string"
                << "\" \n";
@@ -273,7 +275,7 @@ class global
         stream << ">\n";
 
         stream << "<ucis:id ";
-        stream << "file=\"" << type_it.second.file_name << "\" ";
+        stream << "file=\"" << filename2id[type_it.second.file_name] << "\" ";
         stream << "line=\"" << type_it.second.line << "\" ";
         stream << "inlineCount=\""
                << "1"
@@ -291,7 +293,7 @@ class global
           stream << "<ucis:cgInstance ";
           stream << "name=\"" << type_it.second.cvg_insts_name[i] << "\" \n";
 
-          stream << "key=\"" << ++key << "\" \n";
+          stream << "key=\"cgi_" << fc4sc::global::get_next_key() << "\" \n";
           stream << "alias=\""
                  << "string"
                  << "\" \n";
@@ -313,7 +315,7 @@ class global
 
       stream << "</ucis:UCIS>\n";
 
-      key = 0;
+      get_next_key(true);
       return stream;
     };
 
@@ -544,6 +546,22 @@ public:
       }
     }
     return out;
+  }
+
+  static unsigned get_xml_filename_id(const std::string& n){
+      static std::unordered_map<std::string, size_t> filename2id;
+      if(filename2id.find(n) == std::end(filename2id))
+          filename2id[n] = filename2id.size()+1;
+      return filename2id[n];
+  }
+
+  static uint64_t get_next_key(bool reset=false){
+      static uint64_t key{0};
+      if(reset){
+          key=0;
+          return 0;
+      } else
+          return ++key;
   }
 };
 

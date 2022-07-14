@@ -269,7 +269,7 @@ public:
   /*!
    *  Retrieves the number of regular bins
    */
-  uint64_t size() {
+  size_t size() const override {
     return bins.size();
   }
 
@@ -386,9 +386,7 @@ public:
   {
     stream << "<ucis:coverpoint ";
     stream << "name=\"" << fc4sc::global::escape_xml_chars(this->name) << "\" ";
-    stream << "key=\""
-           << "KEY"
-           << "\" ";
+    stream << "key=\"cp_" << fc4sc::global::get_next_key() << "\" ";
     stream << "exprString=\"" << fc4sc::global::escape_xml_chars(this->sample_expression_str) << "\"";
     stream << ">\n";
 

@@ -80,6 +80,13 @@ class cross : public cvp_base
     return 1;
   }
 
+  size_t size() const override
+  {
+    size_t prod = 1;
+    for(auto& cvp: cvps_vec) prod *= cvp->size();
+    return prod;
+  }
+
   /*!
    *  \brief Helper function to check if a sampled value is in a cross
    *  \tparam k Index of the currently checked element
@@ -121,6 +128,19 @@ class cross : public cvp_base
     return true;
   }
 
+  void init_bins(std::vector<size_t>& indices, size_t cvp_index=0){
+      if(cvp_index==cvps_vec.size())
+          bins[indices]=0;
+      else {
+          auto& cvp = cvps_vec[cvp_index];
+          for(size_t i=0; i<cvp->size(); ++i){
+              indices.push_back(i);
+              init_bins(indices, cvp_index+1);
+              indices.pop_back();
+          }
+      }
+  };
+
 public:
   /*! Hit cross bins storage */
   std::map<std::vector<size_t>, uint64_t> bins;
@@ -142,8 +162,11 @@ public:
     cvps_vec = std::vector<cvp_base*>{args...};
 
     std::reverse(cvps_vec.begin(), cvps_vec.end());
-  };
+    std::vector<size_t> prod;
+    prod.reserve(cvps_vec.size());
+    init_bins(prod);
 
+  };
   
   template <typename... Restrictions, typename Select>
   cross(binsof<Select> binsof_inst,  Restrictions... binsofs) : cross (binsofs...) {
@@ -260,25 +283,38 @@ public:
 
     stream << "<ucis:cross ";
     stream << "name=\"" << fc4sc::global::escape_xml_chars(this->name) << "\" ";
-    stream << "key=\""
-           << "KEY"
-           << "\" ";
+    stream << "key=\"cr_" << fc4sc::global::get_next_key() << "\" ";
     stream << ">\n";
 
-    stream << option << "\n";
+    stream << "<ucis:options ";
+    stream << "weight=\"" << option.weight << "\" ";
+    stream << "goal=\"" << option.goal << "\" ";
+    stream << "comment=\"" << option.comment << "\" ";
+    stream << "at_least=\"" << option.at_least << "\" ";
+    stream << "cross_num_print_missing =\"" << 0 << "\" ";
+    stream << "/>\n";
 
     for (auto &cvp : cvps_vec)
     {
       stream << "<ucis:crossExpr>" << cvp->name << "</ucis:crossExpr> \n";
     }
 
+    std::ostringstream ss;
     for (auto& bin : bins)
     {
+      ss.str("");
+      auto it = bin.first.begin();
+      for (auto& cvp : cvps_vec) {
+        if(ss.str().size()) ss<<"/";
+          ss<<cvp->name<<"["<< *it<<"]";
+          it++;
+      }
+
       stream << "<ucis:crossBin \n";
       stream << "name=\""
-             << ""
+             << ss.str()
              << "\"  \n";
-      stream << "key=\"" << 0 << "\" \n";
+      stream << "key=\"crb_" << fc4sc::global::get_next_key() << "\" \n";
       stream << "type=\""
              << "default"
              << "\" \n";

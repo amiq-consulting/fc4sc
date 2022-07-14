@@ -246,7 +246,7 @@ public:
            << "\" line=\""
            << "1"
            << "\" inlineCount=\"1\"/>\n";
-    stream << "<ucis:cgSourceId file=\"" << file_name << "\" "
+    stream << "<ucis:cgSourceId file=\"" << fc4sc::global::get_xml_filename_id(file_name) << "\" "
            << "line=\"" << line << "\""
            << " inlineCount=\"1\"/>\n";
     stream << "</ucis:cgId>\n";
