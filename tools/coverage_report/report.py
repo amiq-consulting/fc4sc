@@ -48,8 +48,12 @@ class UCIS_DB_Reporter(UCIS_DB_Parser):
             module_data['instances'][cgInstance.get('name')] = cg_data
             self.get_coverpoint_report_data(cgInstance, cg_cp_bin_map, cg_data)
             self.get_cross_report_data(cgInstance, cg_cp_bin_map, cg_data)
-            cg_data['pct_cov'] = sum([cp['pct_cov'] * cp['weight'] for cp in cg_data['inst_data'].values()]) \
-                                 / float(sum([cp['weight'] for cp in cg_data['inst_data'].values()]))
+            # Avoid divide by zero if no coverage captured
+            if not cg_data['inst_data']:
+                cg_data['pct_cov'] = 0
+            else:
+                cg_data['pct_cov'] = sum([cp['pct_cov'] * cp['weight'] for cp in cg_data['inst_data'].values()]) \
+                                             / float(sum([cp['weight'] for cp in cg_data['inst_data'].values()]))
 
     def get_coverpoint_report_data(self, cgInstance, cg_cp_bin_map, cg_data):
         for coverpoint in self.findall_ucis_children(cgInstance, "coverpoint"):
